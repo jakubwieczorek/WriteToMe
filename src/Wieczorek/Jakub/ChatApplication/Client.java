@@ -1,15 +1,18 @@
 package Wieczorek.Jakub.ChatApplication;
 
 import java.net.Socket;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class Client {
     Socket socket;
+    String userName;
     final int PORT;
-    DataOutputStream output;
-    DataInputStream input;
+    PrintWriter printWriter;
+    BufferedReader bufferedReader;
+    ClientReceiver receiverMsges;
     
     public Client()
     {
@@ -18,8 +21,12 @@ public class Client {
         try
         {
             this.socket = new Socket("localhost", this.PORT);
-            input = new DataInputStream(this.socket.getInputStream());
-            output = new DataOutputStream(this.socket.getOutputStream());
+            this.printWriter = new PrintWriter(this.socket.getOutputStream(), true);
+            
+            // read from command line
+            this.bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+            
+            receiverMsges = new ClientReceiver(this.socket);
         }
         catch(IOException ex)
         {
@@ -27,13 +34,36 @@ public class Client {
         }  
     }
     
-    DataOutputStream getOutput()
+    public void startConversation()
     {
-        return output;
+        this.receiverMsges.thread.start();
+        
+        // here have to implement thread who will be get messages 
+        try
+        {
+           this.printWriter.println(this.userName);
+            
+            while(true)
+            {
+                // read msg from command line 
+                String outputMsg = this.bufferedReader.readLine();
+                // and send it
+                this.printWriter.println(outputMsg);
+            } 
+        }
+        catch(IOException ex)
+        {
+            System.err.println(ex.getMessage());
+        } 
     }
     
-    DataInputStream getInput()
+    public void setUserName(String name)
     {
-        return input;
+        this.userName = name;
+    }
+    
+    public String getUserName()
+    {
+        return this.userName;
     }
 }

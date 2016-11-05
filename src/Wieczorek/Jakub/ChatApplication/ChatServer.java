@@ -1,7 +1,5 @@
 package Wieczorek.Jakub.ChatApplication;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,9 +9,9 @@ final public class ChatServer {
     /**
      * Keeping all clients as a new threads.
      * 
-     * @see Wieczorek.Jakub.ChatApplication.NewClient
+     * @see Wieczorek.Jakub.ChatApplication.ChatServerClient
      */
-    public ArrayList<NewClient>clients; 
+    public ArrayList<ChatServerClient>clients; 
     
     /**
      * PORT to server field.
@@ -29,48 +27,36 @@ final public class ChatServer {
     
     public static void main(String [] args)
     {   
+        ChatServer chatServer = new ChatServer(); // create instance
+        chatServer.runServer(chatServer);
+    }
+    
+    void runServer(ChatServer chatServer)
+    {
         try
         {   
-            ChatServer chatServer = new ChatServer(); // create instance
             chatServer.server = new ServerSocket(chatServer.PORT); // create server - only one for all customers
             
-            System.out.println("Waiting for clients..\n");
+            System.out.println("Waiting for clients..");
             
             while(true)
             {   
-                Socket socket = chatServer.server.accept();               
-                NewClient newClient = new NewClient(socket, chatServer);
-                chatServer.clients.add(newClient);
-                System.out.println("New Client !!\n");
-
-                // Now Server must get from new user his name, and announce his name to different users.
-                chatServer.getNameFromNewUser(newClient); // here can be IOExceptions
+                // here server is waiting for client
+                Socket socket = chatServer.server.accept();    
                 
-                // I use threads, because all users can communicate with each other independently
-                Thread thread = new Thread(newClient); 
-                thread.start();
+                // newClient is created with gotten socket 
+                ChatServerClient newClient = new ChatServerClient(socket, chatServer);
+                
+                // newClient is added to database of clients
+                chatServer.clients.add(newClient);
+
+                // now client in server lives independently, when is called .start() method in newClient is called .run() method
+                newClient.thread.start();
             }
         }
         catch(IOException ex)
         {
             System.err.println(ex.getMessage());
-        }
-    }
-    
-    private void getNameFromNewUser(NewClient newClient) throws IOException
-    {
-        DataInputStream input = new DataInputStream(newClient.socket.getInputStream()); // input, server receives messages.
-        DataOutputStream output; 
-        
-        String newClientsName = input.readUTF(); // client should send his name for server
-        
-        newClient.setName(newClientsName); // this name is assigned to newClient from invokeing method.
-        System.out.println("New Client's name " + newClientsName);
-        // now server have to send message that new user has just logged
-        for(NewClient client : this.clients) 
-        {
-            output = new DataOutputStream(client.socket.getOutputStream()); // so server must get outputstream from all clients
-            output.writeUTF(newClientsName + " is logged."); // and send them message.
         }
     }
 }
