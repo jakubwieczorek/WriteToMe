@@ -2,6 +2,9 @@ package Wieczorek.Jakub.ChatApplication;
 
 import java.io.IOException;
 import javax.swing.DefaultListModel;
+import java.io.InputStream;
+import java.io.PrintStream;
+
 /**
  *  This is view for user. I've sepperated graphical contents and control part from customer,
  *  thus logical part of classes Client and ClientView is in Client class, GUI is in ClientView.
@@ -10,11 +13,7 @@ import javax.swing.DefaultListModel;
  */
 public class ClientView extends javax.swing.JFrame 
 {    
-    /**
-     *  Gui is connected with logical part so in ClientView class is one static member CLIENT (in 
-     *  addition final, because ClientView shouldn't change state of logical part).
-     */
-    static final private Client CLIENT = new Client();
+    private Client client;
     
     /**
      * This is model for listOfMates.
@@ -27,13 +26,13 @@ public class ClientView extends javax.swing.JFrame
     public static ClientView clientView = new ClientView();
     
     private String outputMsg;
-    private String mate;
+    private String receiver;
     
     public ClientView() 
     {
-        this.outputMsg = "";
-        this.mate = "Server";
         initComponents();
+        
+        client = new Client(ClientView.textArea, ClientView.textToSend);
         
         ClientView.listOfMates.setModel(model);
     }
@@ -112,15 +111,16 @@ public class ClientView extends javax.swing.JFrame
      * to server.
      */
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
-        outputMsg = textToSend.getText();
+        //outputMsg = receiver + ":" + textToSend.getText();
         try
         {   
             // if user chose mate who should receive outputMsg
-            if(!"".equals(mate))
+            /*if(!"".equals(receiver))
             {
-                CLIENT.getOutput().writeUTF(mate);
-                CLIENT.getOutput().writeUTF(outputMsg);
-            }
+                inputStream.read(outputMsg.getBytes("UTF-8"));
+            }*/
+            outputMsg = textToSend.getText();
+            inputStream.read(outputMsg.getBytes("UTF-8"));
         }
         catch(IOException ex)
         {
@@ -137,7 +137,7 @@ public class ClientView extends javax.swing.JFrame
         
         if(!evt.getValueIsAdjusting())
         { // assign to mate user who should receive msg
-            mate = listOfMates.getSelectedValue();
+            receiver = listOfMates.getSelectedValue();
         }
     }//GEN-LAST:event_listOfMatesValueChanged
 
@@ -172,35 +172,11 @@ public class ClientView extends javax.swing.JFrame
                 new ClientView().setVisible(true);
             }
         });
-            // Bellowing code is reliable for manage input stream.
-            try
-            {
-                String msgInput;
-                String fromWho;
-                while(true)
-                {   
-                    fromWho = ClientView.CLIENT.getInput().readUTF();
-                    msgInput = ClientView.CLIENT.getInput().readUTF();
-                    switch(fromWho)
-                    {
-                        case "fromServer":
-                        {
-                            model.addElement(msgInput); // create new mate in listOfMates
-                            break;
-                        }
-                        default:
-                        {   // display conversation with all mates.
-                            ClientView.textArea.setText(ClientView.textArea.getText().trim() +
-                                    fromWho + msgInput);
-                            break;
-                        }
-                    }
-                }
-            }catch(IOException ex)
-            {
-                System.err.println(ex.getMessage());
-            }
-            
+   
+        // setting username 
+        clientView.client.setUserName(args[0]);
+        
+        clientView.client.startConversation();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
