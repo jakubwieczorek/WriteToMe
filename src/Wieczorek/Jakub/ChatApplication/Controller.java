@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 public class Controller 
 {
-    View theView;
+    ViewGui theView;
     Model theModel;
     
     public Controller(String userName)
@@ -15,7 +15,7 @@ public class Controller
         
         try 
         {
-            this.theView = new View(theModel.client.getInputStream());
+            this.theView = new ViewGui(theModel.client.getInputStream());
         }
         catch (IOException ex) 
         {
@@ -31,7 +31,9 @@ public class Controller
         
             while(true)
             {
-                theModel.client.sendMsg(theView.getMessageToSend());
+                String msg = theView.getMessageToSend();
+                //System.out.println(msg);
+                theModel.client.sendMsg(msg);
             }
         }
         catch(IOException ex)

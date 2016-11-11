@@ -4,3 +4,4 @@ nbproject
 *.xml
 build
 
+/dist/
