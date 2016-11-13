@@ -46,7 +46,7 @@ public class View
             {
                 while(true)
                 {
-                    printMessage(bufferedReader.readLine());
+                    printMessage(this.bufferedReader.readLine());
                 }
             } 
             catch (IOException ex) 

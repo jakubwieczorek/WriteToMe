@@ -3,6 +3,8 @@ package Wieczorek.Jakub.ChatApplication;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class Controller 
 {
@@ -15,7 +17,25 @@ public class Controller
         
         try 
         {
-            this.theView = new ViewGui(theModel.client.getInputStream());
+            this.theView = new ViewGui
+            (theModel.client.getInputStream(), 
+            
+                new ActionListener()
+                {
+                    @Override
+                    public void actionPerformed(ActionEvent e) 
+                    {
+                        try
+                        {
+                            theModel.client.sendMsg(theView.getMessageToSend());
+                        }
+                        catch(IOException ex)
+                        {
+                            
+                        }
+                    }  
+                }   
+            );
         }
         catch (IOException ex) 
         {
@@ -25,21 +45,6 @@ public class Controller
     
     public void startConversation()
     {        
-        try
-        {
-            theView.receiverMessages.thread.start();
-        
-            while(true)
-            {
-                String msg = theView.getMessageToSend();
-                //System.out.println(msg);
-                theModel.client.sendMsg(msg);
-            }
-        }
-        catch(IOException ex)
-        {
-            System.err.println(ex.getMessage());
-        }
-       
+        theView.receiverMessages.thread.start();
     }
 }

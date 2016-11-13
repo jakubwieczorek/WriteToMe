@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ViewGui extends JFrame
@@ -16,30 +15,16 @@ public class ViewGui extends JFrame
     JTextField textToSend;
     JTextArea historyOfConversation;
     JButton sendButton;
-    boolean isSendButtonClicked;
     
-    public ViewGui(InputStream inputStream)
+    public ViewGui(InputStream inputStream, ActionListener sendButtonAction)
     {
         this.initUI();
-        this.isSendButtonClicked = false;
-        this.receiverMessages = new ReceiverMessages(inputStream, this.historyOfConversation);
+        this.receiverMessages = new ReceiverMessages(inputStream);
+        this.sendButton.addActionListener(sendButtonAction);
     }
     
-    @SuppressWarnings("empty-statement")
     public String getMessageToSend()
     {
-        while(true)
-        {
-            if(isSendButtonClicked == true)
-                break;
-            else
-            {
-                System.out.print(""); // without these line it's not working. Why ?!
-            }
-        }
-        
-        isSendButtonClicked  = false;
-        
         return textToSend.getText() + "\n";
     }
 
@@ -76,9 +61,6 @@ public class ViewGui extends JFrame
         // sendButton
         this.sendButton = new JButton("Send");
         
-        ButtonActionListener buttonActionListener = new ButtonActionListener();
-        this.sendButton.addActionListener(buttonActionListener);
-        
         panel.add(this.sendButton);
         
         this.add(panel);
@@ -86,29 +68,15 @@ public class ViewGui extends JFrame
         this.setVisible(true);
     }
     
-    private class ButtonActionListener implements ActionListener
-    {
-        @Override
-        public void actionPerformed(ActionEvent e)
-        {
-            if(e.getSource() == sendButton)
-            {
-                isSendButtonClicked = true;
-            }
-        }
-    }
-    
     // class to receive messages with setting messages to object in parent class (ViewGui)
     public class ReceiverMessages implements Runnable
     {
         BufferedReader bufferedReader;
         Thread thread;
-        JTextArea historyOfConversation;
         
-        public ReceiverMessages(InputStream inputStream, JTextArea historyOfConversation)
+        public ReceiverMessages(InputStream inputStream)
         {
             this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            this.historyOfConversation = historyOfConversation;
             this.thread = new Thread(this);
         }
         
@@ -121,7 +89,7 @@ public class ViewGui extends JFrame
                 {
                     String msg = this.bufferedReader.readLine();
                     
-                    this.historyOfConversation.append(msg);
+                    historyOfConversation.append(msg);
                 }
             }
             catch(IOException ex)
