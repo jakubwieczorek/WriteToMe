@@ -25,13 +25,16 @@ public class Controller
                     @Override
                     public void actionPerformed(ActionEvent e) 
                     {
-                        try
+                        if(e.getSource() == theView.sendButton)
                         {
-                            theModel.client.sendMsg(theView.getMessageToSend());
-                        }
-                        catch(IOException ex)
-                        {
-                            
+                            try
+                            {
+                                theModel.client.sendMsg(theView.getMessageToSend());
+                            }
+                            catch(IOException ex)
+                            {
+
+                            }
                         }
                     }  
                 }   

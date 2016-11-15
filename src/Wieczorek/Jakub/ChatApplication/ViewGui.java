@@ -25,7 +25,7 @@ public class ViewGui extends JFrame
     
     public String getMessageToSend()
     {
-        return textToSend.getText() + "\n";
+        return textToSend.getText();
     }
 
     private void initUI()
@@ -89,7 +89,7 @@ public class ViewGui extends JFrame
                 {
                     String msg = this.bufferedReader.readLine();
                     
-                    historyOfConversation.append(msg);
+                    historyOfConversation.append(msg + "\n");
                 }
             }
             catch(IOException ex)
