@@ -18,7 +18,7 @@ public class Controller
         try 
         {
             this.theView = new ViewGui
-            (theModel.client.getInputStream(), 
+            (theModel.client.getInputStream(),
             
                 new ActionListener()
                 {
@@ -27,15 +27,15 @@ public class Controller
                     {
                         if(e.getSource() == theView.sendButton)
                         {
-                            try
-                            {
-                                theModel.client.sendMsg(theView.getMessageToSend());
-                            }
-                            catch(IOException ex)
-                            {
-
-                            }
+                            theModel.client.sendMsg(theView.listOfMates.getSelectedValue().toString() + ":" + theView.getMessageToSend());
                         }
+                        else
+                        {
+                            if(e.getSource() == theView.addMateButton)
+                            {
+                                theModel.client.sendPersonInquire(theView.getPersonInquiry());
+                            }
+                        } 
                     }  
                 }   
             );

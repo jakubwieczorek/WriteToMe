@@ -15,17 +15,28 @@ public class ViewGui extends JFrame
     JTextField textToSend;
     JTextArea historyOfConversation;
     JButton sendButton;
+    JButton addMateButton;
+    
+    JList listOfMates;
+    DefaultListModel model = new DefaultListModel();
     
     public ViewGui(InputStream inputStream, ActionListener sendButtonAction)
     {
         this.initUI();
         this.receiverMessages = new ReceiverMessages(inputStream);
+        
         this.sendButton.addActionListener(sendButtonAction);
+        this.addMateButton.addActionListener(sendButtonAction);
     }
     
     public String getMessageToSend()
     {
         return textToSend.getText();
+    }
+    
+    public String getPersonInquiry() 
+    {
+        return this.getMessageToSend();
     }
 
     private void initUI()
@@ -46,7 +57,7 @@ public class ViewGui extends JFrame
         // JPanel:
         JPanel panel = new JPanel();
         
-        // textToSens
+        // textToSend
         this.textToSend = new JTextField(15);
         panel.add(this.textToSend);
         
@@ -60,9 +71,22 @@ public class ViewGui extends JFrame
         
         // sendButton
         this.sendButton = new JButton("Send");
-        
         panel.add(this.sendButton);
         
+        this.addMateButton = new JButton("Add mate");
+        panel.add(this.addMateButton);
+        
+        
+        // listOfMates
+        this.listOfMates = new JList(this.model);
+        
+        this.listOfMates.setVisibleRowCount(4);
+        this.listOfMates.setFixedCellHeight(30);
+        this.listOfMates.setFixedCellWidth(150);
+        
+        JScrollPane listBar = new JScrollPane(this.listOfMates, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                
+        panel.add(listBar);
         this.add(panel);
         
         this.setVisible(true);
@@ -87,9 +111,30 @@ public class ViewGui extends JFrame
             {
                 while(true)
                 {
-                    String msg = this.bufferedReader.readLine();
+                    char typeOfMsg = (char)this.bufferedReader.read();
                     
-                    historyOfConversation.append(msg + "\n");
+                    switch(typeOfMsg)
+                    {
+                        case Model.SEND_MESSAGE:
+                        {
+                            String msg = this.bufferedReader.readLine();
+                    
+                            historyOfConversation.append(msg + "\n");
+                            break;
+                        }
+                        case Model.SEND_PERSON:
+                        {
+                            String msg = this.bufferedReader.readLine();
+                            historyOfConversation.append(msg + "\n");
+                            
+                            char exist = (char)this.bufferedReader.read();
+
+                            if(exist == ChatServerClient.TRUE)
+                            {
+                                model.addElement(this.bufferedReader.readLine());
+                            }
+                        }
+                    }
                 }
             }
             catch(IOException ex)

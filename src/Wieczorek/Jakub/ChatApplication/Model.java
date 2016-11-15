@@ -8,6 +8,8 @@ import java.net.Socket;
 public class Model 
 {
     Client client;
+    static final char SEND_MESSAGE = '1';
+    static final char SEND_PERSON = '2';
     
     public Model(String userName)
     {
@@ -45,11 +47,18 @@ public class Model
             return this.socket.getInputStream();
         }
         
-        public void sendMsg(String msgToSend) throws IOException
+        public void sendMsg(String msgToSend)
         {
+            this.printWriter.print(SEND_MESSAGE);
             this.printWriter.println(msgToSend);
         }
-
+        
+        public void sendPersonInquire(String person)
+        {
+            this.printWriter.print(SEND_PERSON);
+            this.printWriter.println(person);
+        }
+        
         public void setUserName(String name)
         {
             this.userName = name;

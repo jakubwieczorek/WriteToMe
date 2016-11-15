@@ -7,13 +7,16 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.io.PrintWriter;
 
-public class ChatServerClient implements Runnable{
+public class ChatServerClient implements Runnable
+{
     Socket socket;
     String name;
     ChatServer parent;
     Thread thread;
     ArrayList<ChatServerClient>mates;
     
+    static final char TRUE = 't';
+    static final char FALSE = 'f';
     
     /**
      * Constructor to the NewClient class. 
@@ -89,39 +92,80 @@ public class ChatServerClient implements Runnable{
             this.name = bufferedReader.readLine();
             System.out.println("New client logged as " + this.name);
             
-            while(((message = bufferedReader.readLine()) != null))
+            while(true)
             {
-                // here this client who send message, must find mate who should receive message.
-                String [] userNameAndMessage = new String[2];
-
-                // here split user and message
-                try
+                char flag = (char)bufferedReader.read();
+                
+                message = bufferedReader.readLine();
+                
+                switch(flag)
                 {
-                    userNameAndMessage = splitUserNameAndMessage(message);
-                    
-                    String userName = userNameAndMessage[0];
-                    String msg = userNameAndMessage[1];
-                    
-                    try
+                    case Model.SEND_MESSAGE:
                     {
-                        // here server is looking for a receiver
-                        ChatServerClient receiver = findPerson(userName);
+                        // here this client who send message, must find mate who should receive message.
+                        String [] userNameAndMessage = new String[2];
 
-                        // send msg to proper person
-                        PrintWriter printWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
+                        // here split user and message
+                        try
+                        {
+                            userNameAndMessage = splitUserNameAndMessage(message);
 
-                        // from who and contents
-                        printWriter.println(this.name + " write:" + msg);
+                            String userName = userNameAndMessage[0];
+                            String msg = userNameAndMessage[1];
+
+                            try
+                            {
+                                // here server is looking for a receiver
+                                ChatServerClient receiver = findPerson(userName);
+
+                                // send msg to proper person
+                                PrintWriter printWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
+
+                                // from who and contents
+                                printWriter.print(flag);
+                                printWriter.println(this.name + " write:" + msg);
+                            }
+                            catch(NullPointerException ex)
+                            {
+                                System.err.println(ex.getMessage());
+                            }
+                        }
+                        catch(IllegalArgumentException ex)
+                        {
+                            System.err.println(ex.getMessage());
+                        } 
+                        
+                        break;
                     }
-                    catch(NullPointerException ex)
+                    case Model.SEND_PERSON:
                     {
-                        System.err.println(ex.getMessage());
+                        PrintWriter printWriterWhoseQuestion = new PrintWriter(this.socket.getOutputStream(), true);
+                        
+                        try
+                        {   
+                            ChatServerClient receiver = findPerson(message);
+                            PrintWriter printWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
+
+                            printWriterWhoseQuestion.print(flag);
+                            printWriterWhoseQuestion.println("This mate exists!");
+                            printWriterWhoseQuestion.print(TRUE);
+                            printWriterWhoseQuestion.println(message);
+                            
+                            printWriter.print(flag);
+                            printWriter.println(this.name + " add You to mates!");
+                            printWriter.print(TRUE);
+                            printWriter.println(this.name);  
+                        }
+                        catch(NullPointerException ex)
+                        {
+                            printWriterWhoseQuestion.print(flag);
+                            printWriterWhoseQuestion.println(ex.getMessage());
+                            printWriterWhoseQuestion.print(FALSE);
+                        }
+                        
+                        break;
                     }
                 }
-                catch(IllegalArgumentException ex)
-                {
-                    System.err.println(ex.getMessage());
-                }  
             }
         }
         catch(IOException ex)
