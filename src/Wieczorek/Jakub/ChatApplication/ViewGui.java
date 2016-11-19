@@ -99,6 +99,30 @@ public class ViewGui extends JFrame
         this.addMateButton.addActionListener(sendButtonAction);
     }
     
+    private class getUserNameFrame extends JFrame
+    {
+        String userName;
+        
+        public String getUserNameFrame()
+        {
+            this.initUI();
+            
+            return userName;
+        }
+        
+        public void initUI()
+        {
+            this.setSize(200, 200);
+            
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            Dimension dim = toolkit.getScreenSize();
+            this.setLocation(dim.width / 2 - this.size().width / 2, dim.height / 2 - this.size().height);
+        
+            
+            
+        }
+    }
+    
     /**
      * getter for textToSend.
      * 
@@ -253,18 +277,18 @@ public class ViewGui extends JFrame
         @Override
         public void run()
         {
-            try
+            while(true)
             {
-                while(true)
+                try
                 {
                     char typeOfMsg = (char)this.bufferedReader.read();
-                    
+
                     switch(typeOfMsg)
                     {
                         case Model.SEND_MESSAGE:
                         {
                             String msg = this.bufferedReader.readLine();
-                    
+
                             historyOfConversation.append(msg + "\n");
                             break;
                         }
@@ -272,7 +296,7 @@ public class ViewGui extends JFrame
                         {
                             String msg = this.bufferedReader.readLine();
                             historyOfConversation.append(msg + "\n");
-                            
+
                             char exist = (char)this.bufferedReader.read();
 
                             if(exist == ChatServerClient.TRUE)
@@ -282,10 +306,10 @@ public class ViewGui extends JFrame
                         }
                     }
                 }
-            }
-            catch(IOException ex)
-            {
-                System.err.println(ex.getMessage());
+                catch(IOException ex)
+                {
+                    System.err.println(ex.getMessage() + "Not all data may be read");
+                }
             }
         }
     }

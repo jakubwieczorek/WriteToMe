@@ -171,6 +171,7 @@ public class ChatServerClient implements Runnable
         catch(IOException ex)
         {
             System.err.println(ex.getMessage());
+            
         } 
     }
     
