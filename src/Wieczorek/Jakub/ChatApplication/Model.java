@@ -31,13 +31,22 @@ public class Model
     static final char SEND_PERSON = '2';
     
     /**
-     * Sends userName to server.
+     * Constructor 
      * 
      * @param userName username for user.
      */
     public Model(String userName)
     {
         this.client = new Client(userName);
+    }
+    
+    /**
+     * Constructor 
+     * 
+     */
+    public Model()
+    {
+        this.client = new Client();
     }
     
     /**
@@ -77,6 +86,19 @@ public class Model
          */
         public Client(String userName)
         {
+            this();
+            
+            this.userName = userName;
+            
+            // first thing after logged is to send username.
+            this.printWriter.println(userName);
+        }
+        
+        /**
+         * Constructor. Programist must send setUserName and send them on his own after create Client.
+         */
+        public Client()
+        {
             this.PORT = 1550;
 
             try
@@ -88,11 +110,6 @@ public class Model
             {
                 System.err.println(ex.getMessage());
             }
-            
-            this.userName = userName;
-            
-            // first thing after logged is to send username.
-            printWriter.println(userName);
         }
         
         /**
@@ -134,6 +151,8 @@ public class Model
         public void setUserName(String name)
         {
             this.userName = name;
+            // add proper flag in order to server knows that user wants to change his username.
+            this.printWriter.println(this.userName);
         }
 
         /**

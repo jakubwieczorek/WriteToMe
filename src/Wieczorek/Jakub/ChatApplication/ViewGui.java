@@ -76,7 +76,6 @@ public class ViewGui extends JFrame
      */
     DefaultListModel model = new DefaultListModel();
     
-    
     /**
      * Constructor. 
      * 
@@ -99,27 +98,79 @@ public class ViewGui extends JFrame
         this.addMateButton.addActionListener(sendButtonAction);
     }
     
-    private class getUserNameFrame extends JFrame
+    public static class GetUserNameWindow extends JFrame
     {
         String userName;
+        JTextField inputUserName;
+        JButton okButton;
         
-        public String getUserNameFrame()
+        String getUserName()
+        {
+            return this.userName;
+        }
+        
+        public GetUserNameWindow(ActionListener okButtonAction)
         {
             this.initUI();
-            
-            return userName;
+            this.okButton.addActionListener(okButtonAction);
         }
         
         public void initUI()
         {
-            this.setSize(200, 200);
+            this.setSize(400, 200);
             
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             Dimension dim = toolkit.getScreenSize();
             this.setLocation(dim.width / 2 - this.size().width / 2, dim.height / 2 - this.size().height);
-        
             
+            this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            this.setResizable(false);
             
+            JPanel panel = new JPanel();
+            
+            this.okButton = new JButton("Ok");
+            this.okButton.setEnabled(false);
+            
+            panel.add(this.okButton);
+            
+            this.inputUserName = new JTextField(20);
+            
+            this.inputUserName.getDocument().addDocumentListener
+            (
+                new DocumentListener()
+                {
+                    @Override
+                    public void insertUpdate(DocumentEvent e) 
+                    {
+                        this.change();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) 
+                    {
+                        this.change();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) 
+                    {
+                        this.change();
+                    } 
+                    
+                    private void change()
+                    {
+                        if(inputUserName.getText().equals(""))
+                            okButton.setEnabled(false);
+                        else
+                            okButton.setEnabled(true);
+                    }
+                }
+            );
+            
+            panel.add(this.inputUserName);
+            
+            this.add(panel);
+            this.setVisible(true);
         }
     }
     
@@ -237,18 +288,17 @@ public class ViewGui extends JFrame
         this.listOfMates.setToolTipText("All your mates.");
         this.listOfMates.addListSelectionListener
         (
-            new ListSelectionListener()
+            (event)->
             {
-                @Override
-                public void valueChanged(ListSelectionEvent e) 
-                {
-                    if(!textToSend.getText().equals(""))
-                        sendButton.setEnabled(true);
-                    else
-                        sendButton.setEnabled(false);
-                }
+
+                if(!textToSend.getText().equals(""))
+                    sendButton.setEnabled(true);
+                else
+                    sendButton.setEnabled(false);
             }
         );
+        
+        this.listOfMates.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // only one mate can be selected.
         
         this.listOfMates.setVisibleRowCount(4);
         this.listOfMates.setFixedCellHeight(30);
