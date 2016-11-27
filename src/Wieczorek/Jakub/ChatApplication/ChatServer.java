@@ -23,7 +23,9 @@ final public class ChatServer {
     {
         this.clients = new ArrayList<>();
         this.PORT = 1550;
-    }
+    }// mac = numer karty sieciowej -  rozmawia z najblizszym komputerem
+    
+    // skm i skm, tin, bss
     
     public static void main(String [] args)
     {   
