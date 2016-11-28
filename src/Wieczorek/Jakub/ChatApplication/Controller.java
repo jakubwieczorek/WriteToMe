@@ -13,7 +13,6 @@ public class Controller
     /**
      * Constructor
      */
-    @SuppressWarnings("empty-statement")
     public Controller()
     {
         this.getUserNameWindow = new ViewGui.GetUserNameWindow
@@ -56,17 +55,20 @@ public class Controller
                         /* if user click for the sendButton, method in theModel instance will
                            send the message to the server: ToWho:text
                         */
-                        theModel.client.sendMsg(theView.listOfMates.getSelectedValue().toString() + ":" + theView.getMessageToSend());
+                        String msg = theView.getMessageToSend();
+                        String toWho = theView.listOfMates.getSelectedValue().toString();
+                        theModel.client.sendMsg(new Message(Protocol.MESSAGE, toWho + ":" + msg));
+                        theView.historyOfConversation.append("You send to " + toWho + " " + msg);
                         theView.textToSend.setText("");
                     }
                     else
                     {
                         if(event.getSource() == theView.addMateButton)
-                        {
+                        
                             /* if user click for the addMateButton, method in theModel instance will
                                send the inquiry to the server, wheter that person exist or not.
                             */
-                            theModel.client.sendPersonInquire(theView.getPersonInquiry());
+                            theModel.client.sendMsg(new Message(Protocol.PERSON_INQUIRE, theView.getPersonInquiry()));
                         }
                     }
                 }

@@ -15,9 +15,6 @@ public class ChatServerClient implements Runnable
     Thread thread;
     ArrayList<ChatServerClient>mates;
     
-    static final char TRUE = 't';
-    static final char FALSE = 'f';
-    
     /**
      * Constructor to the NewClient class. 
      * 
@@ -94,13 +91,15 @@ public class ChatServerClient implements Runnable
             
             while(true)
             {
-                char flag = (char)bufferedReader.read();
+                int flag = Protocol.convert(bufferedReader.read());
                 
                 message = bufferedReader.readLine();
                 
+                System.out.println(message);
+                
                 switch(flag)
                 {
-                    case Model.SEND_MESSAGE:
+                    case Protocol.MESSAGE:
                     {
                         // here this client who send message, must find mate who should receive message.
                         String [] userNameAndMessage = new String[2];
@@ -137,7 +136,7 @@ public class ChatServerClient implements Runnable
                         
                         break;
                     }
-                    case Model.SEND_PERSON:
+                    case Protocol.PERSON_INQUIRE:
                     {
                         PrintWriter printWriterWhoseQuestion = new PrintWriter(this.socket.getOutputStream(), true);
                         
@@ -148,19 +147,19 @@ public class ChatServerClient implements Runnable
 
                             printWriterWhoseQuestion.print(flag);
                             printWriterWhoseQuestion.println("This mate exists!");
-                            printWriterWhoseQuestion.print(TRUE);
+                            printWriterWhoseQuestion.print(Protocol.PERSON_EXIST);
                             printWriterWhoseQuestion.println(message);
                             
                             printWriter.print(flag);
                             printWriter.println(this.name + " add You to mates!");
-                            printWriter.print(TRUE);
+                            printWriter.print(Protocol.PERSON_EXIST);
                             printWriter.println(this.name);  
                         }
                         catch(NullPointerException ex)
                         {
                             printWriterWhoseQuestion.print(flag);
                             printWriterWhoseQuestion.println(ex.getMessage());
-                            printWriterWhoseQuestion.print(FALSE);
+                            printWriterWhoseQuestion.print(Protocol.PERSON_DONT_EXIST);
                         }
                         
                         break;

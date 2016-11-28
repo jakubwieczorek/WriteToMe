@@ -10,8 +10,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 /**
  *  View part of MVC patern. 
@@ -331,28 +329,33 @@ public class ViewGui extends JFrame
             {
                 try
                 {
-                    char typeOfMsg = (char)this.bufferedReader.read();
-
+                    Message msg = new Message();
+                    
+                    msg.receive(this.bufferedReader);
+                    
+                    int typeOfMsg = Protocol.convert(msg.getFlag());
+                    
+                    System.out.println(msg.getFlag());
+                    
                     switch(typeOfMsg)
                     {
-                        case Model.SEND_MESSAGE:
+                        case Protocol.MESSAGE:
                         {
-                            String msg = this.bufferedReader.readLine();
-
-                            historyOfConversation.append(msg + "\n");
+                            historyOfConversation.append(msg.getText() + "\n");
                             break;
                         }
-                        case Model.SEND_PERSON:
+                        case Protocol.PERSON_INQUIRE:
                         {
-                            String msg = this.bufferedReader.readLine();
-                            historyOfConversation.append(msg + "\n");
+                            historyOfConversation.append(msg.getText() + "\n");
+                            
+                            Message isExist = new Message();
+                            isExist.receive(this.bufferedReader);
 
-                            char exist = (char)this.bufferedReader.read();
-
-                            if(exist == ChatServerClient.TRUE)
+                            if(isExist.getFlag() == Protocol.PERSON_EXIST)
                             {
-                                model.addElement(this.bufferedReader.readLine());
+                                model.addElement(isExist.getText());
                             }
+                            break;
                         }
                     }
                 }

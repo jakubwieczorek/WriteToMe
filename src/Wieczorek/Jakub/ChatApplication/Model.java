@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-
 /**
  * Logic part of MVC patern for user.
  * 
@@ -20,15 +19,6 @@ public class Model
      * @see Wieczorek.Jakub.ChatApplication.Model.Client
      */
     Client client;
-    
-    /**
-     * Flag, which indicated that user wants to send message.
-     */
-    static final char SEND_MESSAGE = '1';
-    /**
-     * Flag, which indicated that user wants to receive information about any user.
-     */
-    static final char SEND_PERSON = '2';
     
     /**
      * Constructor 
@@ -95,7 +85,7 @@ public class Model
         }
         
         /**
-         * Constructor. Programist must send setUserName and send them on his own after create Client.
+         * Constructor. Programist must send UserName and send them on his own after create Client.
          */
         public Client()
         {
@@ -124,23 +114,14 @@ public class Model
         /**
          * Firts send flag to the server, then contents of the message.
          * 
-         * @param msgToSend must be like forWho:text.
-         */
-        public void sendMsg(String msgToSend)
-        {
-            this.printWriter.print(SEND_MESSAGE);
-            this.printWriter.println(msgToSend);
-        }
-        
-         /**
-         * Firts send flag to the server, searching username.
+         * @param msg must be created, that the contents field like forWho:text and the flag field 
+         * should be assigned by proper protocol parameter.
          * 
-         * @param msgToSend must be like forWho:text.
+         * @see Message
          */
-        public void sendPersonInquire(String person)
+        public void sendMsg(Message msg)
         {
-            this.printWriter.print(SEND_PERSON);
-            this.printWriter.println(person);
+            msg.send(this.printWriter);
         }
         
         /**
@@ -154,7 +135,7 @@ public class Model
             // add proper flag in order to server knows that user wants to change his username.
             this.printWriter.println(this.userName);
         }
-
+        
         /**
          * getter for userName.
          * 
