@@ -64,7 +64,7 @@ public class Controller
                     else
                     {
                         if(event.getSource() == theView.addMateButton)
-                        
+                        {
                             /* if user click for the addMateButton, method in theModel instance will
                                send the inquiry to the server, wheter that person exist or not.
                             */

@@ -56,11 +56,10 @@ public class Message
      * send message by given printwriter.
      * 
      * @param printWriter
-     * @throws IOException
      */
     void send(PrintWriter printWriter)
     {
-        printWriter.println(this.flag);
+        printWriter.print(this.flag);
         printWriter.println(this.contents);
     }
     
