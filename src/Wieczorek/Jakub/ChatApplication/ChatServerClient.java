@@ -77,7 +77,7 @@ public class ChatServerClient implements Runnable
     @Override
     public void run()
     {   
-        String message = null;
+        Message messageFromMe = new Message();
         
         try
         {           
@@ -91,13 +91,9 @@ public class ChatServerClient implements Runnable
             
             while(true)
             {
-                int flag = Protocol.convert(bufferedReader.read());
+                messageFromMe.receive(bufferedReader);
                 
-                message = bufferedReader.readLine();
-                
-                System.out.println(message);
-                
-                switch(flag)
+                switch(Protocol.convert(messageFromMe.getFlag()))
                 {
                     case Protocol.MESSAGE:
                     {
@@ -107,7 +103,7 @@ public class ChatServerClient implements Runnable
                         // here split user and message
                         try
                         {
-                            userNameAndMessage = splitUserNameAndMessage(message);
+                            userNameAndMessage = splitUserNameAndMessage(messageFromMe.getText());
 
                             String userName = userNameAndMessage[0];
                             String msg = userNameAndMessage[1];
@@ -121,8 +117,8 @@ public class ChatServerClient implements Runnable
                                 PrintWriter printWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
 
                                 // from who and contents
-                                printWriter.print(flag);
-                                printWriter.println(this.name + " write:" + msg);
+                                new Message(Protocol.convert(messageFromMe.getFlag()), 
+                                        this.name + " wrote:" + msg).send(printWriter);
                             }
                             catch(NullPointerException ex)
                             {
@@ -139,27 +135,43 @@ public class ChatServerClient implements Runnable
                     case Protocol.PERSON_INQUIRE:
                     {
                         PrintWriter printWriterWhoseQuestion = new PrintWriter(this.socket.getOutputStream(), true);
+                        Message returnInformation = new Message();
+                        Message informationToAddedMate = new Message();
                         
                         try
                         {   
-                            ChatServerClient receiver = findPerson(message);
+                            // find mate
+                            ChatServerClient receiver = findPerson(messageFromMe.getText());
                             PrintWriter printWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
-
-                            printWriterWhoseQuestion.print(flag);
-                            printWriterWhoseQuestion.println("This mate exists!");
-                            printWriterWhoseQuestion.print(Protocol.PERSON_EXIST);
-                            printWriterWhoseQuestion.println(message);
                             
-                            printWriter.print(flag);
-                            printWriter.println(this.name + " add You to mates!");
-                            printWriter.print(Protocol.PERSON_EXIST);
-                            printWriter.println(this.name);  
+                            // return information about existance
+                            returnInformation.setFlag(Protocol.convert(messageFromMe.getFlag()));
+                            returnInformation.setText("This mate exists!");
+                            returnInformation.send(printWriterWhoseQuestion);
+                            
+                            returnInformation.setFlag(Protocol.PERSON_EXIST);
+                            returnInformation.setText(messageFromMe.getText()); // mate username
+                            returnInformation.send(printWriterWhoseQuestion);  
+                            
+                            // give information that this client add him to friends
+                            informationToAddedMate.setFlag(Protocol.convert(messageFromMe.getFlag()));
+                            informationToAddedMate.setText(this.name + " add You to mates!");
+                            informationToAddedMate.send(printWriter);
+                            
+                            informationToAddedMate.setFlag(Protocol.PERSON_EXIST);
+                            informationToAddedMate.setText(this.name);
+                            informationToAddedMate.send(printWriter);
                         }
                         catch(NullPointerException ex)
                         {
-                            printWriterWhoseQuestion.print(flag);
-                            printWriterWhoseQuestion.println(ex.getMessage());
-                            printWriterWhoseQuestion.print(Protocol.PERSON_DONT_EXIST);
+                            // return information about lack of existance
+                            returnInformation.setFlag(Protocol.convert(messageFromMe.getFlag()));
+                            returnInformation.setText(ex.getMessage());
+                            returnInformation.send(printWriterWhoseQuestion);
+                            
+                            returnInformation.setFlag(Protocol.convert(Protocol.PERSON_DONT_EXIST));
+                            returnInformation.setText("");
+                            returnInformation.send(printWriterWhoseQuestion);
                         }
                         
                         break;

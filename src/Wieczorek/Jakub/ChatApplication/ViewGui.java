@@ -351,7 +351,7 @@ public class ViewGui extends JFrame
                             Message isExist = new Message();
                             isExist.receive(this.bufferedReader);
 
-                            if(isExist.getFlag() == Protocol.PERSON_EXIST)
+                            if(Protocol.convert(isExist.getFlag()) == Protocol.PERSON_EXIST)
                             {
                                 model.addElement(isExist.getText());
                             }

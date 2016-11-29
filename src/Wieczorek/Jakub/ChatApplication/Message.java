@@ -52,6 +52,26 @@ public class Message
         return this.flag;
     }
     
+        /**
+     * setter for flag field
+     * 
+     * @param flag is new flag
+     */
+    public void setFlag(int flag)
+    {
+        this.flag = flag;
+    }
+    
+    /**
+     * setter for contents field
+     * 
+     * @param text is new contents for this message
+     */    
+    public void setText(String text)
+    {
+        this.contents = text;
+    }
+    
     /**
      * send message by given printwriter.
      * 
