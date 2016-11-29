@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -75,15 +74,24 @@ public class ViewGui extends JFrame
     DefaultListModel model = new DefaultListModel();
     
     /**
+     * Reference for controller who direct model and view. It is neccessary, becouse
+     * if View didn't know about controller where this View would created, liseners for
+     * buttons would have to be created in controller. For maintance the code and flexibility 
+     * reference for controller in View class is better.
+     * 
+     * @see javax.swing.DefaultListModel
+     */
+    Controller controller;
+    
+    /**
      * Constructor. 
      * 
      * @param inputSream made for creating BufferedReader instance in receiverMessages.
      * @param userName initiate userName field.
-     * @param sendButtonAction is implementation of ActionListener for sendButton and addMateButton.
      * 
      * @see Wieczorek.Jakub.ChatApplication.ViewGui.ReceiverMessages#run()
      */
-    public ViewGui(String userName, InputStream inputStream, ActionListener sendButtonAction)
+    public ViewGui(String userName, InputStream inputStream, Controller controller)
     {
         this.userName = userName;
         
@@ -92,25 +100,77 @@ public class ViewGui extends JFrame
         
         this.receiverMessages = new ReceiverMessages(inputStream);
         
-        this.sendButton.addActionListener(sendButtonAction);
-        this.addMateButton.addActionListener(sendButtonAction);
+        this.controller = controller;
+        
+        this.sendButton.addActionListener
+        (
+            (event)->
+            {
+                if(event.getSource() == this.sendButton)
+                {
+                    /* if user click for the sendButton, method in theModel instance will
+                       send the message to the server: ToWho:text
+                    */
+                    String msg = this.getMessageToSend();
+                    String toWho = this.listOfMates.getSelectedValue().toString();
+                    
+                    // invoke proper method to upgrade model
+                    this.controller.upgradeModelMsg(msg, toWho);
+                    this.historyOfConversation.append("You send to " + toWho + " " + msg);
+                    this.textToSend.setText("");
+                }
+            }
+        );
+        
+        this.addMateButton.addActionListener
+        (
+            (event)->
+            {
+                if(event.getSource() == this.addMateButton)
+                {
+                    /* if user click for the addMateButton, method in theModel instance will
+                       send the inquiry to the server, wheter that person exist or not.
+                    */
+                    this.controller.upgradeModelMateInquire(this.getPersonInquiry());
+                }
+            }       
+        );
     }
+    
+    
     
     public static class GetUserNameWindow extends JFrame
     {
         String userName;
         JTextField inputUserName;
         JButton okButton;
+        Controller controller;
         
         String getUserName()
         {
             return this.userName;
         }
         
-        public GetUserNameWindow(ActionListener okButtonAction)
+        public GetUserNameWindow(Controller controller)
         {
             this.initUI();
-            this.okButton.addActionListener(okButtonAction);
+            
+            this.controller = controller;
+            
+            this.okButton.addActionListener
+            (
+                (event)-> 
+                {
+                    if(event.getSource() == this.okButton) 
+                    {
+                        this.userName = this.inputUserName.getText();
+                        // temp value, becouse this.dispose()
+                        String userName = this.getUserName();
+                        this.dispose();
+                        this.controller.createViewAndModel(userName);
+                    }
+                }
+            );
         }
         
         public void initUI()
@@ -288,7 +348,6 @@ public class ViewGui extends JFrame
         (
             (event)->
             {
-
                 if(!textToSend.getText().equals(""))
                     sendButton.setEnabled(true);
                 else
