@@ -91,7 +91,14 @@ public class Message
      */
     void receive(BufferedReader bufferedReader) throws IOException
     {
-        this.flag = bufferedReader.read();
-        this.contents = bufferedReader.readLine();
+        try
+        {
+            this.flag = bufferedReader.read();
+            this.contents = bufferedReader.readLine();
+        }
+        catch(IOException ex)
+        {
+            throw new IOException("Lack of ability to read message");
+        }
     }
 }

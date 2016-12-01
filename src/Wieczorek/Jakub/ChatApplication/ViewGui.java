@@ -19,7 +19,7 @@ import javax.swing.event.DocumentListener;
 public class ViewGui extends JFrame
 {   
     /**
-     * Instance as a thread. It is made for receiving messages and dipsplaing all messages on 
+     * Instance as a thread. It is made for receiving messages and displaing all messages on 
      * historyOfConversation.
      * 
      * @see Wieczorek.Jakub.ChatApplication.ViewGui#historyOfConversation
@@ -136,8 +136,6 @@ public class ViewGui extends JFrame
             }       
         );
     }
-    
-    
     
     public static class GetUserNameWindow extends JFrame
     {
