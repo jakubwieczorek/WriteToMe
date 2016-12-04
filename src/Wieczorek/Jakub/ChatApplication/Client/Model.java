@@ -1,5 +1,6 @@
-package Wieczorek.Jakub.ChatApplication;
+package Wieczorek.Jakub.ChatApplication.Client;
 
+import Wieczorek.Jakub.ChatApplication.Message;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -32,7 +33,6 @@ public class Model
     
     /**
      * Constructor 
-     * 
      */
     public Model()
     {
@@ -132,7 +132,6 @@ public class Model
         public void setUserName(String name)
         {
             this.userName = name;
-            // add proper flag in order to server knows that user wants to change his username.
             this.printWriter.println(this.userName);
         }
         

@@ -15,30 +15,39 @@ public class Protocol
     /**
      * Flag, which indicated that after this flag is message.
      */
-    static final int MESSAGE = 2;
+    public static final int MESSAGE = 2;
     /**
      * Flag, which indicated that after this flag is information about any user.
      */
-    static final int PERSON_INQUIRE = 3;
+    public static final int PERSON_INQUIRE = 3;
     
     /**
      * Flag, which indicated that person exist.
      */
-    static final int PERSON_EXIST = 1;
+    public static final int PERSON_EXIST = 1;
 
     /**
      * Flag, which indicated that person don't exist.
      */
-    static final int PERSON_DONT_EXIST = 0;
-    
+    public static final int PERSON_DONT_EXIST = 0;
     
     /**
-     * Socketreceives flag converted to char from ascii so there is needd to
+     * Flag which indicate that person have jast logged out.
+     */
+    public static final int EXIT = 4;
+    
+    /**
+     * Flag which indicate that user want to add following person to mates.
+     */
+    public static final int AGREE = 5;
+    
+    /**
+     * Socket receives flag converted to char from ascii so there is need to
      * convert it.
      * 
      * @param flag is flag who should be coverted.
      */
-    static final int convert(int flag)
+    public static final int convert(int flag)
     {
         return flag - 48;
     }

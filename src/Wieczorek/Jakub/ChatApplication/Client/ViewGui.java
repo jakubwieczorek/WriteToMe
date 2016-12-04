@@ -1,5 +1,7 @@
-package Wieczorek.Jakub.ChatApplication;
+package Wieczorek.Jakub.ChatApplication.Client;
 
+import Wieczorek.Jakub.ChatApplication.Message;
+import Wieczorek.Jakub.ChatApplication.Protocol;
 import javax.swing.*;
 import java.io.InputStream;
 import java.io.BufferedReader;
@@ -87,14 +89,10 @@ public class ViewGui extends JFrame
      * Constructor. 
      * 
      * @param inputSream made for creating BufferedReader instance in receiverMessages.
-     * @param userName initiate userName field.
-     * 
      * @see Wieczorek.Jakub.ChatApplication.ViewGui.ReceiverMessages#run()
      */
-    public ViewGui(String userName, InputStream inputStream, Controller controller)
-    {
-        this.userName = userName;
-        
+    public ViewGui(InputStream inputStream, Controller controller)
+    {   
         // graphic contents for theView
         this.initUI();
         
@@ -137,97 +135,10 @@ public class ViewGui extends JFrame
         );
     }
     
-    public static class GetUserNameWindow extends JFrame
+    public void setUserName(String userName)
     {
-        String userName;
-        JTextField inputUserName;
-        JButton okButton;
-        Controller controller;
-        
-        String getUserName()
-        {
-            return this.userName;
-        }
-        
-        public GetUserNameWindow(Controller controller)
-        {
-            this.initUI();
-            
-            this.controller = controller;
-            
-            this.okButton.addActionListener
-            (
-                (event)-> 
-                {
-                    if(event.getSource() == this.okButton) 
-                    {
-                        this.userName = this.inputUserName.getText();
-                        // temp value, becouse this.dispose()
-                        String userName = this.getUserName();
-                        this.dispose();
-                        this.controller.createViewAndModel(userName);
-                    }
-                }
-            );
-        }
-        
-        public void initUI()
-        {
-            this.setSize(400, 200);
-            
-            Toolkit toolkit = Toolkit.getDefaultToolkit();
-            Dimension dim = toolkit.getScreenSize();
-            this.setLocation(dim.width / 2 - this.size().width / 2, dim.height / 2 - this.size().height);
-            
-            this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            this.setResizable(false);
-            
-            JPanel panel = new JPanel();
-            
-            this.okButton = new JButton("Ok");
-            this.okButton.setEnabled(false);
-            
-            panel.add(this.okButton);
-            
-            this.inputUserName = new JTextField(20);
-            
-            this.inputUserName.getDocument().addDocumentListener
-            (
-                new DocumentListener()
-                {
-                    @Override
-                    public void insertUpdate(DocumentEvent e) 
-                    {
-                        this.change();
-                    }
-
-                    @Override
-                    public void removeUpdate(DocumentEvent e) 
-                    {
-                        this.change();
-                    }
-
-                    @Override
-                    public void changedUpdate(DocumentEvent e) 
-                    {
-                        this.change();
-                    } 
-                    
-                    private void change()
-                    {
-                        if(inputUserName.getText().equals(""))
-                            okButton.setEnabled(false);
-                        else
-                            okButton.setEnabled(true);
-                    }
-                }
-            );
-            
-            panel.add(this.inputUserName);
-            
-            this.add(panel);
-            this.setVisible(true);
-        }
+        this.userName = userName;
+        this.setTitle(this.getTitle() + " Logged as " + this.userName);
     }
     
     /**
@@ -257,7 +168,7 @@ public class ViewGui extends JFrame
     {
         this.setSize(400, 400);
         
-        this.setTitle("Write2Me! " + "logged as " + userName);
+        this.setTitle("Write2Me!");
         
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         
@@ -363,8 +274,11 @@ public class ViewGui extends JFrame
                 
         panel.add(listBar);
         this.add(panel);
-        
-        this.setVisible(true);
+    }
+
+    BufferedReader getBufferedReaeder() 
+    {
+        return this.receiverMessages.bufferedReader;
     }
     
     // class to receive messages with setting messages to object in parent class (ViewGui)
@@ -422,5 +336,26 @@ public class ViewGui extends JFrame
                 }
             }
         }
+    }
+    
+    String getUserName(String msg) throws NullPointerException
+    {
+        try
+        {
+            return (String)JOptionPane.showInputDialog
+            (
+                this, msg +
+                "Input your username:",
+                "Write2Me!",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                null,
+                ""
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            throw new NullPointerException("Username wasn't read");
+        }  
     }
 }

@@ -1,4 +1,4 @@
-package Wieczorek.Jakub.ChatApplication;
+package Wieczorek.Jakub.ChatApplication.Client;
 
 public class MVCClient 
 {

@@ -1,10 +1,11 @@
-package Wieczorek.Jakub.ChatApplication;
+package Wieczorek.Jakub.ChatApplication.Server;
 
+import Wieczorek.Jakub.ChatApplication.Message;
+import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
 /**
- *
  * @author jakub
  */
 public class ModelServerClient 
@@ -15,6 +16,11 @@ public class ModelServerClient
     public ModelServerClient(String userName, PrintWriter printWriter) 
     {
         this.userName = userName;
+        this.printWriter = printWriter;
+    }
+    
+    public ModelServerClient(PrintWriter printWriter) 
+    {
         this.printWriter = printWriter;
     }
     
@@ -34,25 +40,36 @@ public class ModelServerClient
     Server.ControllerServerClient findPerson(String userName, ArrayList<Server.ControllerServerClient>clients,
         ArrayList<Server.ControllerServerClient>mates) throws NullPointerException
     {
-        //if he is in local mates
-        for(Server.ControllerServerClient mate : mates)
+        if(mates != null)
         {
-            if(mate.userName.equals(userName))
+            //if he is in local mates
+            for(Server.ControllerServerClient mate : mates)
             {
-                return mate;
+                if(mate.userName.equals(userName))
+                {
+                    return mate;
+                }
             }
         }
-
+        
+        // create method in server class !! and invoke this here
         for(Server.ControllerServerClient person : clients)
         {
             if(person.userName.equals(userName))
             {
-                mates.add(person); // add him to mates
+                // mates.add(person); // add him to mates
                 return person;
             }
         }  
+        
+        
 
-        throw new NullPointerException("I didn't find matching useruserName.");
+        throw new NullPointerException("I didn't find matching userName.");
+    }
+    
+    void addMate(ArrayList<Server.ControllerServerClient>mates, Server.ControllerServerClient mate)
+    {
+        mates.add(mate);
     }
 
     public void setName(String userName)
@@ -76,11 +93,10 @@ public class ModelServerClient
             returnInformation.send(this.printWriter);
 
             returnInformation.setFlag(Protocol.PERSON_EXIST);
-
         }
         else
         {
-            returnInformation.setText("This mate doesn't exist!");
+            returnInformation.setText("This mate doesn't exist");
             returnInformation.send(this.printWriter);
 
             returnInformation.setFlag(Protocol.PERSON_DONT_EXIST);
@@ -102,5 +118,42 @@ public class ModelServerClient
         informationToAddedMate.setFlag(Protocol.PERSON_EXIST);
         informationToAddedMate.setText(this.userName);
         informationToAddedMate.send(matePrintWriter);
+    }
+
+    void sendInformationAboutExitToMates(ArrayList<Server.ControllerServerClient> mates) 
+    {
+        
+    }
+
+    void giveAddedInformation(PrintWriter matePrintWriter) 
+    {
+        Message informationToAddedMate = new Message();
+        
+        // give information that this client add him to friends
+        informationToAddedMate.setFlag(Protocol.AGREE);
+        informationToAddedMate.setText(this.userName + " add You to mates!");
+        informationToAddedMate.send(matePrintWriter);
+
+        informationToAddedMate.setFlag(Protocol.PERSON_EXIST);
+        informationToAddedMate.setText(this.userName);
+        informationToAddedMate.send(matePrintWriter);
+    }
+
+    void returnInformationAboutUserName(boolean isExist) 
+    {
+        Message returnInformation = new Message();
+            
+        if(!isExist)
+        {
+            returnInformation.setText("This username is free");
+            returnInformation.setFlag(Protocol.PERSON_DONT_EXIST);
+        }
+        else
+        {
+            returnInformation.setText("This username is occupied");
+            returnInformation.setFlag(Protocol.PERSON_EXIST);
+        }
+
+        returnInformation.send(this.printWriter);
     }
 }

@@ -1,5 +1,7 @@
-package Wieczorek.Jakub.ChatApplication;
+package Wieczorek.Jakub.ChatApplication.Server;
 
+import Wieczorek.Jakub.ChatApplication.Message;
+import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,6 +32,16 @@ public class Server
         this.PORT = 1550;
         
         this.runServer();
+    }
+    
+    public ControllerServerClient findPerson(String userName)
+    {
+        for (ControllerServerClient person : this.clients) {
+            if(person.userName.equals(userName))
+                return person;
+        }
+        
+        return null;
     }
     
     private void runServer()
@@ -93,26 +105,35 @@ public class Server
 
             this.mates = new ArrayList<>();
             
-            // try initiate theView
+            // try initiate theView and theModel
             try
             {
                 this.printWriter = new PrintWriter(this.socket.getOutputStream(), true);
-
-                // getting from client input reader, so when client send message by for instance PrintWriter object
-                // in this thread that message appears in InputStream 
+        
+                this.theModel = new ModelServerClient(this.printWriter);
+                
                 this.bufferedReader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
                 this.theView = new ViewServerClient(this.bufferedReader);
                 
                 // get userName from theView
                 this.userName = this.theView.getUserName();
+                
+                while(parent.findPerson(this.userName) != null)
+                {
+                    this.theModel.returnInformationAboutUserName(true);
+                    this.userName = this.theView.getUserName();
+                }
+                
+                this.theModel.returnInformationAboutUserName(false);
+                
                 System.out.println("New client logged as " + this.userName);
             }
             catch(IOException ex)
             {
                 System.err.println(ex.getMessage());
             }
-           
-            this.theModel = new ModelServerClient(this.userName, this.printWriter);
+            
+            this.theModel.setName(this.userName);
         }
         
         @Override
@@ -122,7 +143,6 @@ public class Server
             {           
                 while(true)
                 {
-                    
                     Message messageFromMe = this.theView.getMessage();
 
                     switch(Protocol.convert(messageFromMe.getFlag()))
@@ -169,11 +189,13 @@ public class Server
                                 // find mate
                                 ControllerServerClient receiver = theModel.findPerson(messageFromMe.getText(), parent.clients, this.mates);
                                 PrintWriter matePrintWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
-
+                                
                                 // return information about existance
                                 theModel.returnInformationAboutExistance(true, messageFromMe.getText());
+                                theModel.addMate(mates, receiver);
                                 
                                 theModel.giveInviteInformation(matePrintWriter);
+                                receiver.theModel.addMate(receiver.mates, this);
                             }
                             catch(NullPointerException ex)
                             {
@@ -181,6 +203,20 @@ public class Server
                             }
 
                             break;
+                        }
+                        case Protocol.AGREE:
+                        {
+                            ControllerServerClient mate = theModel.findPerson(messageFromMe.getText(), parent.clients, this.mates);
+                            PrintWriter matePrintWriter = new PrintWriter(mate.socket.getOutputStream(), true);
+                                
+                            theModel.addMate(mates, mate);
+                            theModel.giveAddedInformation(matePrintWriter);
+                            mate.theModel.addMate(mate.mates, this);
+                        }
+                        
+                        case Protocol.EXIT:
+                        {
+                            theModel.sendInformationAboutExitToMates(this.mates);
                         }
                     }
                 }

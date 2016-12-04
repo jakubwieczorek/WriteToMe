@@ -77,7 +77,7 @@ public class Message
      * 
      * @param printWriter
      */
-    void send(PrintWriter printWriter)
+    public void send(PrintWriter printWriter)
     {
         printWriter.print(this.flag);
         printWriter.println(this.contents);
@@ -89,7 +89,7 @@ public class Message
      * @param bufferedReader
      * @throws IOException
      */
-    void receive(BufferedReader bufferedReader) throws IOException
+    public void receive(BufferedReader bufferedReader) throws IOException
     {
         try
         {

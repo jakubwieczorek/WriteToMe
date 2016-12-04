@@ -1,5 +1,7 @@
-package Wieczorek.Jakub.ChatApplication;
+package Wieczorek.Jakub.ChatApplication.Server;
 
+import Wieczorek.Jakub.ChatApplication.Message;
+import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
