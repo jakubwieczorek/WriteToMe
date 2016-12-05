@@ -2,72 +2,34 @@ package Wieczorek.Jakub.ChatApplication.Client;
 
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
-import java.awt.BorderLayout;
-import javax.swing.*;
-import java.io.InputStream;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- *  View part of MVC patern. 
- * 
- *  @author Jakub Wieczorek 
- *  @version 1.1
+ * @author jakub
  */
-public class ViewGui extends JFrame
-{   
-    /**
-     * Instance as a thread. It is made for receiving messages and displaing all messages on 
-     * historyOfConversation.
-     * 
-     * @see Wieczorek.Jakub.ChatApplication.ViewGui#historyOfConversation
-     * @see Wieczorek.Jakub.ChatApplication.ViewGui.ReceiverMessages#run() 
-     */
-    ReceiverMessages receiverMessages;
-    
-    /**
-     * Here user inputs the contents of the text to send. Both as a message and as a inquiry for
-     * different user.
-     */
-    JTextField textToSend;
-    
-    /**
-     * Here receiverMessages throws all receiving text.
-     * 
-     * @see receiverMessages
-     */
-    JTextArea historyOfConversation;
-    
-    /**
-     * if user clicks this button, the proper actionListener method will be invoke. Implementation is in Controller part.
-     * Briefly text from textField will be returned as a String.
-     * 
-     * @see Wieczorek.Jakub.ChatApplication.Controller#Controller(java.lang.String) 
-     */
-    JButton sendButton;
-    
-    /**
-     * if user clicks this button, the proper actionListener method will be invoke. Implementation is in Controller part.
-     * Shortly text from the textField will be returned as a String.
-     * 
-     * @see Wieczorek.Jakub.ChatApplication.Controller#Controller(java.lang.String) 
-     */
-    JButton addMateButton;
-    
+public class View extends javax.swing.JFrame {
+
     /**
      * The username for user.
      */
     String userName;
-    
+
     /**
-     * List of mates. If user wants to send message must click for any mate. Then he can click for sendButton button.
+     * Instance as a thread. It is made for receiving messages and displaing all messages on 
+     * historyOfConversation.
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.View#historyOfConversation
+     * @see Wieczorek.Jakub.ChatApplication.View.ReceiverMessages#run() 
      */
-    JList listOfMates;
+    View.ReceiverMessages receiverMessages; 
     
     /**
      * Model for listOfMates.
@@ -90,14 +52,14 @@ public class ViewGui extends JFrame
      * Constructor. 
      * 
      * @param inputSream made for creating BufferedReader instance in receiverMessages.
-     * @see Wieczorek.Jakub.ChatApplication.ViewGui.ReceiverMessages#run()
+     * @see Wieczorek.Jakub.ChatApplication.View.ReceiverMessages#run()
      */
-    public ViewGui(InputStream inputStream, Controller controller)
-    {   
-        // graphic contents for theView
-        this.initUI();
+    public View(InputStream inputStream, Controller controller) 
+    {
+        initComponents();
+        this.listOfMates.setModel(this.model);
         
-        this.receiverMessages = new ReceiverMessages(inputStream);
+        this.receiverMessages = new View.ReceiverMessages(inputStream);
         
         this.controller = controller;
         
@@ -134,57 +96,6 @@ public class ViewGui extends JFrame
                 }
             }       
         );
-    }
-    
-    public void setUserName(String userName)
-    {
-        this.userName = userName;
-        this.setTitle(this.getTitle() + " Logged as " + this.userName);
-    }
-    
-    /**
-     * getter for textToSend.
-     * 
-     * @return string from textToSend.
-     */
-    public String getMessageToSend()
-    {
-        return textToSend.getText();
-    }
-    
-     /**
-     * getter for textToSend.
-     * 
-     * @return string from textToSend.
-     */
-    public String getPersonInquiry() 
-    {
-        return this.getMessageToSend();
-    }
-
-    /**
-     * graphics contents for theView.
-     */
-    private void initUI()
-    {
-        this.setSize(400, 400);
-        
-        this.setTitle("Write2Me!");
-        
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        
-        Dimension dimension = toolkit.getScreenSize();
-        
-        this.setLocation(dimension.width / 2 - this.size().width / 2, 
-                dimension.height / 2 - this.size().height / 2);
-        
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        // JPanel:
-        JPanel panel = new JPanel();
-        
-        // textToSend
-        this.textToSend = new JTextField(15);
         
         // if textToSend is empty buttons should be unenable.
         this.textToSend.getDocument().addDocumentListener
@@ -226,32 +137,10 @@ public class ViewGui extends JFrame
                 }
             }
         );
-        this.textToSend.setToolTipText("Write something. See instruction.");
         
-        // historyOfConversation
-        this.historyOfConversation = new JTextArea(15, 15);
-        this.historyOfConversation.setLineWrap(true);
-        this.historyOfConversation.setWrapStyleWord(true);
-        this.historyOfConversation.setEditable(false);
+        this.jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        this.jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         
-        JScrollPane scrollBar = new JScrollPane(this.historyOfConversation, 
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-        // sendButton
-        this.sendButton = new JButton("Send");
-        this.sendButton.setEnabled(false);
-        this.sendButton.setToolTipText("Enter message to send then click on send, or mates username then click on add.");
-
-        this.addMateButton = new JButton("Add mate");
-        this.addMateButton.setEnabled(false);
-        this.addMateButton.setToolTipText("Enter the message and click me.");
-
-        
-        // listOfMates
-        this.listOfMates = new JList<>();
-        
-        this.listOfMates.setModel(this.model);
-        this.listOfMates.setToolTipText("All your mates.");
         this.listOfMates.addListSelectionListener
         (
             (event)->
@@ -263,30 +152,86 @@ public class ViewGui extends JFrame
             }
         );
         
-        this.listOfMates.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // only one mate can be selected.
-        
-        this.listOfMates.setVisibleRowCount(4);
-        this.listOfMates.setFixedCellHeight(30);
-        this.listOfMates.setFixedCellWidth(150);
-        
-        JScrollPane listBar = new JScrollPane(this.listOfMates, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        
-        panel.add(scrollBar);
-        panel.add(this.sendButton);
-        panel.add(this.historyOfConversation);
-        panel.add(this.textToSend);
-        panel.add(listBar);
-        panel.add(this.addMateButton);
-        
-        this.add(panel);
+        this.jScrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        this.jScrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     }
+    
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jScrollPane2 = new javax.swing.JScrollPane();
+        listOfMates = new javax.swing.JList();
+        sendButton = new javax.swing.JButton();
+        textToSend = new javax.swing.JTextField();
+        addMateButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        historyOfConversation = new javax.swing.JTextArea();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Write2Me!");
+        setResizable(false);
+
+        listOfMates.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listOfMates.setToolTipText("\"All your mates.\"");
+        jScrollPane2.setViewportView(listOfMates);
+
+        sendButton.setText("Send");
+        sendButton.setToolTipText("\"Enter message to send then click on send, or mates username then click on add.\"");
+        sendButton.setEnabled(false);
+
+        textToSend.setToolTipText("\"Write something. See instruction.\"");
+
+        addMateButton.setText("Add");
+        addMateButton.setToolTipText("\"Enter the message and click me.\"");
+        addMateButton.setEnabled(false);
+
+        historyOfConversation.setColumns(20);
+        historyOfConversation.setRows(5);
+        jScrollPane1.setViewportView(historyOfConversation);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(addMateButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(textToSend)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sendButton))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 242, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(sendButton)
+                    .addComponent(textToSend, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(addMateButton))
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
 
     BufferedReader getBufferedReaeder() 
     {
         return this.receiverMessages.bufferedReader;
     }
     
-    // class to receive messages with setting messages to object in parent class (ViewGui)
+    // class to receive messages with setting messages to object in parent class (View)
     public class ReceiverMessages implements Runnable
     {
         BufferedReader bufferedReader;
@@ -363,4 +308,41 @@ public class ViewGui extends JFrame
             throw new NullPointerException("Username wasn't read");
         }  
     }
+    
+        
+    public void setUserName(String userName)
+    {
+        this.userName = userName;
+        this.setTitle(this.getTitle() + " Logged as " + this.userName);
+    }
+    
+    /**
+     * getter for textToSend.
+     * 
+     * @return string from textToSend.
+     */
+    public String getMessageToSend()
+    {
+        return textToSend.getText();
+    }
+    
+     /**
+     * getter for textToSend.
+     * 
+     * @return string from textToSend.
+     */
+    public String getPersonInquiry() 
+    {
+        return this.getMessageToSend();
+    }
+    
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addMateButton;
+    private javax.swing.JTextArea historyOfConversation;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JList listOfMates;
+    private javax.swing.JButton sendButton;
+    private javax.swing.JTextField textToSend;
+    // End of variables declaration//GEN-END:variables
 }
