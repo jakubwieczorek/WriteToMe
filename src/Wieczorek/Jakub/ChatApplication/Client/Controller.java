@@ -3,6 +3,8 @@ package Wieczorek.Jakub.ChatApplication.Client;
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Controller 
 {

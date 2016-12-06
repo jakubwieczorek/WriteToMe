@@ -37,8 +37,7 @@ public class ModelServerClient
         }
     }
 
-    Server.ControllerServerClient findPerson(String userName, ArrayList<Server.ControllerServerClient>clients,
-        ArrayList<Server.ControllerServerClient>mates) throws NullPointerException
+    Server.ControllerServerClient findPerson(String userName, ArrayList<Server.ControllerServerClient>mates)
     {
         if(mates != null)
         {
@@ -50,21 +49,9 @@ public class ModelServerClient
                     return mate;
                 }
             }
-        }
-        
-        // create method in server class !! and invoke this here
-        for(Server.ControllerServerClient person : clients)
-        {
-            if(person.userName.equals(userName))
-            {
-                // mates.add(person); // add him to mates
-                return person;
-            }
-        }  
-        
-        
+        } 
 
-        throw new NullPointerException("I didn't find matching userName.");
+        return null;
     }
     
     void addMate(ArrayList<Server.ControllerServerClient>mates, Server.ControllerServerClient mate)

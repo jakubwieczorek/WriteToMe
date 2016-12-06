@@ -160,6 +160,7 @@ public class View extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jMenu1 = new javax.swing.JMenu();
         jScrollPane2 = new javax.swing.JScrollPane();
         listOfMates = new javax.swing.JList();
         sendButton = new javax.swing.JButton();
@@ -167,6 +168,11 @@ public class View extends javax.swing.JFrame {
         addMateButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         historyOfConversation = new javax.swing.JTextArea();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu2 = new javax.swing.JMenu();
+        jMenu3 = new javax.swing.JMenu();
+
+        jMenu1.setText("jMenu1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Write2Me!");
@@ -186,9 +192,16 @@ public class View extends javax.swing.JFrame {
         addMateButton.setToolTipText("\"Enter the message and click me.\"");
         addMateButton.setEnabled(false);
 
+        historyOfConversation.setEditable(false);
         historyOfConversation.setColumns(20);
         historyOfConversation.setRows(5);
         jScrollPane1.setViewportView(historyOfConversation);
+
+        jMenu2.setText("Invitations");
+        jMenuBar1.add(jMenu2);
+        jMenuBar1.add(jMenu3);
+
+        setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -251,13 +264,11 @@ public class View extends javax.swing.JFrame {
                 try
                 {
                     Message msg = new Message();
-                    
+
                     msg.receive(this.bufferedReader);
-                    
+
                     int typeOfMsg = Protocol.convert(msg.getFlag());
-                    
-                    System.out.println(msg.getFlag());
-                    
+
                     switch(typeOfMsg)
                     {
                         case Protocol.MESSAGE:
@@ -268,7 +279,7 @@ public class View extends javax.swing.JFrame {
                         case Protocol.PERSON_INQUIRE:
                         {
                             historyOfConversation.append(msg.getText() + "\n");
-                            
+
                             Message isExist = new Message();
                             isExist.receive(this.bufferedReader);
 
@@ -339,6 +350,10 @@ public class View extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addMateButton;
     private javax.swing.JTextArea historyOfConversation;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JList listOfMates;

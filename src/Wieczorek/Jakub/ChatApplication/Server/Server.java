@@ -160,20 +160,13 @@ public class Server
                                 String userName = userNameAndMessage[0];
                                 String msg = userNameAndMessage[1];
 
-                                try
-                                {
-                                    // here server is looking for a receiver
-                                    ControllerServerClient receiver = theModel.findPerson(userName, parent.clients, this.mates);
+                                // here server is looking for a receiver
+                                ControllerServerClient receiver = theModel.findPerson(userName, this.mates);
 
-                                    // send msg to proper person
-                                    theView.sendMessage(this.userName,
-                                            new PrintWriter(receiver.socket.getOutputStream(), true),
-                                                msg);
-                                }
-                                catch(NullPointerException ex)
-                                {
-                                    System.err.println(ex.getMessage());
-                                }
+                                // send msg to proper person
+                                theView.sendMessage(this.userName,
+                                        new PrintWriter(receiver.socket.getOutputStream(), true),
+                                            msg);
                             }
                             catch(IllegalArgumentException ex)
                             {
@@ -184,33 +177,34 @@ public class Server
                         }
                         case Protocol.PERSON_INQUIRE:
                         {
-                            try
-                            {   
-                                // find mate
-                                ControllerServerClient receiver = theModel.findPerson(messageFromMe.getText(), parent.clients, this.mates);
+                            // find mate
+                            ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
+
+                            if(receiver != null)
+                            {
                                 PrintWriter matePrintWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
-                                
+
                                 // return information about existance
                                 theModel.returnInformationAboutExistance(true, messageFromMe.getText());
                                 theModel.addMate(mates, receiver);
-                                
+
                                 theModel.giveInviteInformation(matePrintWriter);
                                 receiver.theModel.addMate(receiver.mates, this);
                             }
-                            catch(NullPointerException ex)
-                            {
+                            else
                                 theModel.returnInformationAboutExistance(false, "");
-                            }
 
                             break;
                         }
                         case Protocol.AGREE:
                         {
-                            ControllerServerClient mate = theModel.findPerson(messageFromMe.getText(), parent.clients, this.mates);
+                            ControllerServerClient mate = parent.findPerson(messageFromMe.getText());
                             PrintWriter matePrintWriter = new PrintWriter(mate.socket.getOutputStream(), true);
-                                
+                            
+                            // add mate to mates
                             theModel.addMate(mates, mate);
                             theModel.giveAddedInformation(matePrintWriter);
+                            // add me to mate's mates
                             mate.theModel.addMate(mate.mates, this);
                         }
                         
