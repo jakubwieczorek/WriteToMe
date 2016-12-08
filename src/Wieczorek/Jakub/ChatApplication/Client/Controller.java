@@ -3,8 +3,6 @@ package Wieczorek.Jakub.ChatApplication.Client;
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Controller 
 {
@@ -48,7 +46,7 @@ public class Controller
                 
                 System.out.println(returnInfo.getFlag());
                 
-                if(Protocol.convert(returnInfo.getFlag()) == Protocol.PERSON_DONT_EXIST)
+                if(returnInfo.getFlag() == Protocol.PERSON_DONT_EXIST)
                 {
                     this.theView.setUserName(userName);
                     break;
@@ -82,5 +80,12 @@ public class Controller
     public void startConversation()
     {        
         this.theView.receiverMessages.thread.start();
+    }
+
+    void upgradeModelMateAnswer(String person, char flag) 
+    {
+        theModel.client.sendMsg(new Message(Protocol.ANSWER, ""));
+
+        theModel.client.sendMsg(new Message(flag, person));              
     }
 }

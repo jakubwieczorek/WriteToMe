@@ -145,7 +145,7 @@ public class Server
                 {
                     Message messageFromMe = this.theView.getMessage();
 
-                    switch(Protocol.convert(messageFromMe.getFlag()))
+                    switch(messageFromMe.getFlag())
                     {
                         case Protocol.MESSAGE:
                         {
@@ -177,6 +177,9 @@ public class Server
                         }
                         case Protocol.PERSON_INQUIRE:
                         {
+                            //System.out.println("Person_INQUIRE");
+                                    
+                            
                             // find mate
                             ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
 
@@ -184,30 +187,53 @@ public class Server
                             {
                                 PrintWriter matePrintWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
 
-                                // return information about existance
-                                theModel.returnInformationAboutExistance(true, messageFromMe.getText());
-                                theModel.addMate(mates, receiver);
-
-                                theModel.giveInviteInformation(matePrintWriter);
-                                receiver.theModel.addMate(receiver.mates, this);
+                                // give invite information to mate
+                                theModel.giveInviteInformation(matePrintWriter, Protocol.TO_ME, this.userName + " invited You to mates!", this.userName);
+                            
+                                // give invite information to me 
+                                theModel.giveInviteInformation(this.printWriter, Protocol.FROM_ME, "You invited " + receiver.userName + " to mates!", receiver.userName);
                             }
                             else
-                                theModel.returnInformationAboutExistance(false, "");
+                                theModel.returnInformationAboutExistance(Protocol.PERSON_DONT_EXIST, "This person doesn't exist.");
 
                             break;
                         }
-                        case Protocol.AGREE:
+                        case Protocol.ANSWER:
                         {
-                            ControllerServerClient mate = parent.findPerson(messageFromMe.getText());
-                            PrintWriter matePrintWriter = new PrintWriter(mate.socket.getOutputStream(), true);
+                            Message answer = new Message();
                             
-                            // add mate to mates
-                            theModel.addMate(mates, mate);
-                            theModel.giveAddedInformation(matePrintWriter);
-                            // add me to mate's mates
-                            mate.theModel.addMate(mate.mates, this);
+                            // mates name and agreement
+                            answer.receive(bufferedReader);
+                            
+                            ControllerServerClient mate = parent.findPerson(answer.getText());
+                            
+                            if(mate != null)
+                            {
+                                PrintWriter matePrintWriter = new PrintWriter(mate.socket.getOutputStream(), true);
+                                
+                                if(answer.getFlag() == Protocol.AGREE)
+                                {   
+                                    //System.out.println("ANSWER + AGREE");
+                                    // send information to me, becouse mate send to me invitation and I accept this invitation.
+                                    theModel.giveAddedInformation(this.printWriter, Protocol.TO_ME, Protocol.AGREE, mate.userName, "You added " + mate.userName + " to mates!");
+                                    // add mate to mates
+                                    theModel.addMate(mates, mate);
+                                    // send information to mate, flag is FROM_ME becouse he send information 
+                                    theModel.giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.AGREE, this.userName, this.userName + " add You to mates!");
+                                    // add me to mate's mates
+                                    mate.theModel.addMate(mate.mates, this);
+                                }
+                                else
+                                if(answer.getFlag() == Protocol.DISAGREE)
+                                {
+                                    System.out.println("ANSWER + DISAGREE");
+                                    // send information TO_ME. I received information and I refuse it.
+                                    theModel.giveAddedInformation(this.printWriter, Protocol.TO_ME, Protocol.DISAGREE, mate.userName, "You refused " + mate.userName + " invitation.");
+                                
+                                    theModel.giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.DISAGREE, this.userName, this.userName + " refuse your invitation.");
+                                }
+                            }
                         }
-                        
                         case Protocol.EXIT:
                         {
                             theModel.sendInformationAboutExitToMates(this.mates);

@@ -69,42 +69,17 @@ public class ModelServerClient
         return this.userName;
     }
 
-    void returnInformationAboutExistance(boolean isExist, String matesUserName) 
-    {
-        Message returnInformation = new Message();
-            
-        returnInformation.setFlag(Protocol.PERSON_INQUIRE);
-        if(isExist)
-        {
-            returnInformation.setText("This mate exists!");
-            returnInformation.send(this.printWriter);
-
-            returnInformation.setFlag(Protocol.PERSON_EXIST);
-        }
-        else
-        {
-            returnInformation.setText("This mate doesn't exist");
-            returnInformation.send(this.printWriter);
-
-            returnInformation.setFlag(Protocol.PERSON_DONT_EXIST);
-        }
-        
-        returnInformation.setText(matesUserName);
-        returnInformation.send(this.printWriter);
+    void returnInformationAboutExistance(char flag, String msg) 
+    {   
+        new Message(Protocol.PERSON_INQUIRE, msg).send(this.printWriter);
     }
 
-    void giveInviteInformation(PrintWriter matePrintWriter) 
-    {
-        Message informationToAddedMate = new Message();
+    void giveInviteInformation(PrintWriter printWriter, char flag, String msg, String msgTwo) 
+    {   
+        // message type invitation
+        new Message(Protocol.PERSON_INVITATION, msg).send(printWriter);
         
-        // give information that this client add him to friends
-        informationToAddedMate.setFlag(Protocol.PERSON_INQUIRE);
-        informationToAddedMate.setText(this.userName + " add You to mates!");
-        informationToAddedMate.send(matePrintWriter);
-
-        informationToAddedMate.setFlag(Protocol.PERSON_EXIST);
-        informationToAddedMate.setText(this.userName);
-        informationToAddedMate.send(matePrintWriter);
+        new Message(flag, msgTwo).send(printWriter);
     }
 
     void sendInformationAboutExitToMates(ArrayList<Server.ControllerServerClient> mates) 
@@ -112,18 +87,13 @@ public class ModelServerClient
         
     }
 
-    void giveAddedInformation(PrintWriter matePrintWriter) 
+    void giveAddedInformation(PrintWriter printWriter, char who, char flag, String userName, String msg) 
     {
-        Message informationToAddedMate = new Message();
+        new Message(Protocol.ANSWER, "").send(printWriter);
         
-        // give information that this client add him to friends
-        informationToAddedMate.setFlag(Protocol.AGREE);
-        informationToAddedMate.setText(this.userName + " add You to mates!");
-        informationToAddedMate.send(matePrintWriter);
-
-        informationToAddedMate.setFlag(Protocol.PERSON_EXIST);
-        informationToAddedMate.setText(this.userName);
-        informationToAddedMate.send(matePrintWriter);
+        new Message(who, msg).send(printWriter);
+        
+        new Message(flag, userName).send(printWriter);
     }
 
     void returnInformationAboutUserName(boolean isExist) 

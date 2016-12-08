@@ -2,13 +2,16 @@ package Wieczorek.Jakub.ChatApplication.Client;
 
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -77,7 +80,8 @@ public class View extends javax.swing.JFrame {
                     
                     // invoke proper method to upgrade model
                     this.controller.upgradeModelMsg(msg, toWho);
-                    this.historyOfConversation.append("You send to " + toWho + " " + msg);
+                    
+                    this.historyOfConversation.append("You send to " + toWho + " " + msg + "\n");
                     this.textToSend.setText("");
                 }
             }
@@ -93,6 +97,7 @@ public class View extends javax.swing.JFrame {
                        send the inquiry to the server, wheter that person exist or not.
                     */
                     this.controller.upgradeModelMateInquire(this.getPersonInquiry());
+                    this.textToSend.setText("");
                 }
             }       
         );
@@ -138,9 +143,6 @@ public class View extends javax.swing.JFrame {
             }
         );
         
-        this.jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        this.jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        
         this.listOfMates.addListSelectionListener
         (
             (event)->
@@ -151,36 +153,33 @@ public class View extends javax.swing.JFrame {
                     sendButton.setEnabled(false);
             }
         );
-        
-        this.jScrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        this.jScrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     }
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jMenu1 = new javax.swing.JMenu();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        listOfMatesScrollPane = new javax.swing.JScrollPane();
         listOfMates = new javax.swing.JList();
         sendButton = new javax.swing.JButton();
         textToSend = new javax.swing.JTextField();
         addMateButton = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        historyOfConversationScrollPane = new javax.swing.JScrollPane();
         historyOfConversation = new javax.swing.JTextArea();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu2 = new javax.swing.JMenu();
-        jMenu3 = new javax.swing.JMenu();
-
-        jMenu1.setText("jMenu1");
+        menuBar = new javax.swing.JMenuBar();
+        menuInvitations = new javax.swing.JMenu();
+        invitationsSended = new javax.swing.JMenu();
+        invitationsReceived = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Write2Me!");
         setResizable(false);
 
+        listOfMatesScrollPane.setToolTipText("");
+
         listOfMates.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         listOfMates.setToolTipText("\"All your mates.\"");
-        jScrollPane2.setViewportView(listOfMates);
+        listOfMatesScrollPane.setViewportView(listOfMates);
 
         sendButton.setText("Send");
         sendButton.setToolTipText("\"Enter message to send then click on send, or mates username then click on add.\"");
@@ -195,13 +194,19 @@ public class View extends javax.swing.JFrame {
         historyOfConversation.setEditable(false);
         historyOfConversation.setColumns(20);
         historyOfConversation.setRows(5);
-        jScrollPane1.setViewportView(historyOfConversation);
+        historyOfConversationScrollPane.setViewportView(historyOfConversation);
 
-        jMenu2.setText("Invitations");
-        jMenuBar1.add(jMenu2);
-        jMenuBar1.add(jMenu3);
+        menuInvitations.setText("Invitations");
 
-        setJMenuBar(jMenuBar1);
+        invitationsSended.setText("Sended");
+        menuInvitations.add(invitationsSended);
+
+        invitationsReceived.setText("Received");
+        menuInvitations.add(invitationsReceived);
+
+        menuBar.add(menuInvitations);
+
+        setJMenuBar(menuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -210,7 +215,7 @@ public class View extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(listOfMatesScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(addMateButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -218,7 +223,7 @@ public class View extends javax.swing.JFrame {
                         .addComponent(textToSend)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sendButton))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE))
+                    .addComponent(historyOfConversationScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -226,8 +231,8 @@ public class View extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 242, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1))
+                    .addComponent(listOfMatesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 242, Short.MAX_VALUE)
+                    .addComponent(historyOfConversationScrollPane))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(sendButton)
@@ -267,7 +272,7 @@ public class View extends javax.swing.JFrame {
 
                     msg.receive(this.bufferedReader);
 
-                    int typeOfMsg = Protocol.convert(msg.getFlag());
+                    int typeOfMsg = msg.getFlag();
 
                     switch(typeOfMsg)
                     {
@@ -279,14 +284,97 @@ public class View extends javax.swing.JFrame {
                         case Protocol.PERSON_INQUIRE:
                         {
                             historyOfConversation.append(msg.getText() + "\n");
-
-                            Message isExist = new Message();
-                            isExist.receive(this.bufferedReader);
-
-                            if(Protocol.convert(isExist.getFlag()) == Protocol.PERSON_EXIST)
+                            break;
+                        }
+                        case Protocol.PERSON_INVITATION:
+                        {
+                            historyOfConversation.append(msg.getText() + "\n");
+                            
+                            Message invitation = new Message();
+                            invitation.receive(this.bufferedReader);
+                            
+                            JMenu mate = new JMenu(invitation.getText());
+                            
+                            switch(invitation.getFlag())
                             {
-                                model.addElement(isExist.getText());
+                                case Protocol.FROM_ME:
+                                {
+                                    invitationsSended.add(new JLabel(mate.getText()));
+                                    
+                                    break;
+                                }
+                                case Protocol.TO_ME:
+                                {
+                                    JMenuItem mateAdd = new JMenuItem("Accept");
+                                    JMenuItem mateRefuse = new JMenuItem("Refuse");
+                                       
+                                    mateAdd.addActionListener
+                                    (
+                                        (event)->
+                                        {
+                                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.AGREE);
+                                        }   
+                                    );
+                                    
+                                    mateRefuse.addActionListener
+                                    (
+                                        (event)->
+                                        {
+                                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.DISAGREE);
+                                        }
+                                    );
+                                    
+                                    mate.add(mateAdd);
+                                    mate.add(mateRefuse);
+                                    invitationsReceived.add(mate);
+                                    
+                                    break;
+                                }
                             }
+                            break;
+                        }
+                        case Protocol.ANSWER:
+                        {
+                            historyOfConversation.append(msg.getText() + "\n");
+                            
+                            // from me or to me
+                            Message source = new Message();
+                            source.receive(this.bufferedReader);
+                            
+                            historyOfConversation.append(source.getText() + "\n");
+                            
+                            // mates name
+                            Message agree = new Message();
+                            agree.receive(this.bufferedReader);
+                            
+                            if(source.getFlag() == Protocol.FROM_ME)
+                            {  
+                                // mate seeking
+                                for(Component menuComponent : invitationsSended.getMenuComponents()) 
+                                {
+                                    if(((JMenuItem)menuComponent).getText().equals(agree.getText()))
+                                    {
+                                        invitationsSended.remove(menuComponent);
+                                    }
+                                }
+                            }else
+                            if(source.getFlag() == Protocol.TO_ME)
+                            { 
+                                // mate seeking
+                                for(Component menuComponent : invitationsReceived.getMenuComponents()) 
+                                {
+                                    if(((JMenuItem)menuComponent).getText().equals(agree.getText()))
+                                    {
+                                        invitationsReceived.remove(menuComponent);
+                                    }
+                                }
+                            } 
+                            
+                            if(agree.getFlag() == Protocol.AGREE)
+                            {
+                                model.addElement(agree.getText());
+                            }
+                            
                             break;
                         }
                     }
@@ -350,13 +438,13 @@ public class View extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addMateButton;
     private javax.swing.JTextArea historyOfConversation;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane historyOfConversationScrollPane;
+    private javax.swing.JMenu invitationsReceived;
+    private javax.swing.JMenu invitationsSended;
     private javax.swing.JList listOfMates;
+    private javax.swing.JScrollPane listOfMatesScrollPane;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu menuInvitations;
     private javax.swing.JButton sendButton;
     private javax.swing.JTextField textToSend;
     // End of variables declaration//GEN-END:variables

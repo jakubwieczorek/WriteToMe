@@ -16,7 +16,7 @@ public class Message
     /**
      * Flag from proper protocol. It is sent always before contents of the message.
      */
-    private int flag;
+    private char flag;
     
     /**
      * Constructor
@@ -24,7 +24,7 @@ public class Message
      * @param contents is text of this message
      * @param flag is flag for this message determining type of this message.
      */
-    public Message(int flag, String contents)
+    public Message(char flag, String contents)
     {
         this.flag = flag;
         this.contents = contents;
@@ -57,7 +57,7 @@ public class Message
      * 
      * @param flag is new flag
      */
-    public void setFlag(int flag)
+    public void setFlag(char flag)
     {
         this.flag = flag;
     }
@@ -93,7 +93,7 @@ public class Message
     {
         try
         {
-            this.flag = bufferedReader.read();
+            this.flag = (char)bufferedReader.read();
             this.contents = bufferedReader.readLine();
         }
         catch(IOException ex)
