@@ -320,7 +320,7 @@ public class View extends javax.swing.JFrame {
             {
                 case Protocol.FROM_ME:
                 {
-                    invitationsSended.add(new JLabel(mate.getText()));
+                    invitationsSended.add(new JMenuItem(mate.getText()));
 
                     break;
                 }
