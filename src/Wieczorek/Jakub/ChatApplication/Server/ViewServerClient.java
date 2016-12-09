@@ -30,18 +30,12 @@ public class ViewServerClient
         }
     }
 
-    Message getMessage() 
+    Message getMessage() throws IOException
     {
         Message msg = new Message();
         
-        try
-        {
-            msg.receive(this.bufferedReader);
-        }
-        catch(IOException ex)
-        {
-            System.err.println(ex.getMessage());
-        }
+        msg.receive(this.bufferedReader);
+
         
         return msg;
     }

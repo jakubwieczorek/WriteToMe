@@ -6,7 +6,6 @@ package Wieczorek.Jakub.ChatApplication;
  * who should receive message, before that message gets proper flag. So question about
  * mate, simple message has unique flag.
  * 
- * 
  * @author Jakub Wieczorek
  * @version 1.1
  */

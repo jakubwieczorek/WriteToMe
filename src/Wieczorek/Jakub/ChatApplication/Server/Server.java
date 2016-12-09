@@ -136,6 +136,87 @@ public class Server
             this.theModel.setName(this.userName);
         }
         
+        private void directMessage(Message messageFromMe) throws IOException
+        {
+            // here this client who send message, must find mate who should receive message.
+            String [] userNameAndMessage = new String[2];
+
+            // here split user and message
+            try
+            {
+                userNameAndMessage = theModel.splitUserNameAndMessage(messageFromMe.getText());
+
+                String userName = userNameAndMessage[0];
+                String msg = userNameAndMessage[1];
+
+                // here server is looking for a receiver
+                ControllerServerClient receiver = theModel.findPerson(userName, this.mates);
+
+                // send msg to proper person
+                theView.sendMessage(this.userName,
+                        new PrintWriter(receiver.socket.getOutputStream(), true),
+                            msg);
+            }
+            catch(IllegalArgumentException ex)
+            {
+                System.err.println(ex.getMessage());
+            } 
+        }
+
+        private void directPersonInquire(Message messageFromMe) throws IOException
+        {
+            // find mate
+            ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
+
+            if(receiver != null)
+            {
+                PrintWriter matePrintWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
+
+                // give invite information to mate
+                theModel.giveInviteInformation(matePrintWriter, Protocol.TO_ME, this.userName + " invited You to mates!", this.userName);
+
+                // give invite information to me 
+                theModel.giveInviteInformation(this.printWriter, Protocol.FROM_ME, "You invited " + receiver.userName + " to mates!", receiver.userName);
+            }
+            else
+                theModel.returnInformationAboutExistance(Protocol.PERSON_DONT_EXIST, "This person doesn't exist.");
+        }
+
+        private void directAnswer() throws IOException
+        {   
+            // mates name and agreement
+            Message answer = this.theView.getMessage();
+
+            ControllerServerClient mate = parent.findPerson(answer.getText());
+
+            if(mate != null)
+            {
+                PrintWriter matePrintWriter = new PrintWriter(mate.socket.getOutputStream(), true);
+
+                if(answer.getFlag() == Protocol.AGREE)
+                {   
+                    //System.out.println("ANSWER + AGREE");
+                    // send information to me, becouse mate send to me invitation and I accept this invitation.
+                    theModel.giveAddedInformation(this.printWriter, Protocol.TO_ME, Protocol.AGREE, mate.userName, "You added " + mate.userName + " to mates!");
+                    // add mate to mates
+                    theModel.addMate(mates, mate);
+                    // send information to mate, flag is FROM_ME becouse he send information 
+                    theModel.giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.AGREE, this.userName, this.userName + " add You to mates!");
+                    // add me to mate's mates
+                    mate.theModel.addMate(mate.mates, this);
+                }
+                else
+                if(answer.getFlag() == Protocol.DISAGREE)
+                {
+                    System.out.println("ANSWER + DISAGREE");
+                    // send information TO_ME. I received information and I refuse it.
+                    theModel.giveAddedInformation(this.printWriter, Protocol.TO_ME, Protocol.DISAGREE, mate.userName, "You refused " + mate.userName + " invitation.");
+
+                    theModel.giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.DISAGREE, this.userName, this.userName + " refuse your invitation.");
+                }
+            }
+        }                 
+                            
         @Override
         public void run()
         {   
@@ -149,94 +230,27 @@ public class Server
                     {
                         case Protocol.MESSAGE:
                         {
-                            // here this client who send message, must find mate who should receive message.
-                            String [] userNameAndMessage = new String[2];
-
-                            // here split user and message
-                            try
-                            {
-                                userNameAndMessage = theModel.splitUserNameAndMessage(messageFromMe.getText());
-
-                                String userName = userNameAndMessage[0];
-                                String msg = userNameAndMessage[1];
-
-                                // here server is looking for a receiver
-                                ControllerServerClient receiver = theModel.findPerson(userName, this.mates);
-
-                                // send msg to proper person
-                                theView.sendMessage(this.userName,
-                                        new PrintWriter(receiver.socket.getOutputStream(), true),
-                                            msg);
-                            }
-                            catch(IllegalArgumentException ex)
-                            {
-                                System.err.println(ex.getMessage());
-                            } 
-
+                            this.directMessage(messageFromMe);
+                            
                             break;
                         }
                         case Protocol.PERSON_INQUIRE:
                         {
-                            //System.out.println("Person_INQUIRE");
-                                    
-                            
-                            // find mate
-                            ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
-
-                            if(receiver != null)
-                            {
-                                PrintWriter matePrintWriter = new PrintWriter(receiver.socket.getOutputStream(), true);
-
-                                // give invite information to mate
-                                theModel.giveInviteInformation(matePrintWriter, Protocol.TO_ME, this.userName + " invited You to mates!", this.userName);
-                            
-                                // give invite information to me 
-                                theModel.giveInviteInformation(this.printWriter, Protocol.FROM_ME, "You invited " + receiver.userName + " to mates!", receiver.userName);
-                            }
-                            else
-                                theModel.returnInformationAboutExistance(Protocol.PERSON_DONT_EXIST, "This person doesn't exist.");
+                            this.directPersonInquire(messageFromMe);
 
                             break;
                         }
                         case Protocol.ANSWER:
                         {
-                            Message answer = new Message();
+                            this.directAnswer();
                             
-                            // mates name and agreement
-                            answer.receive(bufferedReader);
-                            
-                            ControllerServerClient mate = parent.findPerson(answer.getText());
-                            
-                            if(mate != null)
-                            {
-                                PrintWriter matePrintWriter = new PrintWriter(mate.socket.getOutputStream(), true);
-                                
-                                if(answer.getFlag() == Protocol.AGREE)
-                                {   
-                                    //System.out.println("ANSWER + AGREE");
-                                    // send information to me, becouse mate send to me invitation and I accept this invitation.
-                                    theModel.giveAddedInformation(this.printWriter, Protocol.TO_ME, Protocol.AGREE, mate.userName, "You added " + mate.userName + " to mates!");
-                                    // add mate to mates
-                                    theModel.addMate(mates, mate);
-                                    // send information to mate, flag is FROM_ME becouse he send information 
-                                    theModel.giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.AGREE, this.userName, this.userName + " add You to mates!");
-                                    // add me to mate's mates
-                                    mate.theModel.addMate(mate.mates, this);
-                                }
-                                else
-                                if(answer.getFlag() == Protocol.DISAGREE)
-                                {
-                                    System.out.println("ANSWER + DISAGREE");
-                                    // send information TO_ME. I received information and I refuse it.
-                                    theModel.giveAddedInformation(this.printWriter, Protocol.TO_ME, Protocol.DISAGREE, mate.userName, "You refused " + mate.userName + " invitation.");
-                                
-                                    theModel.giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.DISAGREE, this.userName, this.userName + " refuse your invitation.");
-                                }
-                            }
+                            break;
                         }
                         case Protocol.EXIT:
                         {
                             theModel.sendInformationAboutExitToMates(this.mates);
+                            
+                            break;
                         }
                     }
                 }
@@ -244,7 +258,6 @@ public class Server
             catch(IOException ex)
             {
                 System.err.println(ex.getMessage());
-
             } 
         }
     }

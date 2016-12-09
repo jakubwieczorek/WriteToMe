@@ -271,109 +271,30 @@ public class View extends javax.swing.JFrame {
                     Message msg = new Message();
 
                     msg.receive(this.bufferedReader);
-
-                    int typeOfMsg = msg.getFlag();
-
-                    switch(typeOfMsg)
+                    
+                    switch(msg.getFlag())
                     {
                         case Protocol.MESSAGE:
                         {
                             historyOfConversation.append(msg.getText() + "\n");
+                            
                             break;
                         }
                         case Protocol.PERSON_INQUIRE:
                         {
                             historyOfConversation.append(msg.getText() + "\n");
+                            
                             break;
                         }
                         case Protocol.PERSON_INVITATION:
                         {
-                            historyOfConversation.append(msg.getText() + "\n");
+                            this.directPersonInvitation(msg);
                             
-                            Message invitation = new Message();
-                            invitation.receive(this.bufferedReader);
-                            
-                            JMenu mate = new JMenu(invitation.getText());
-                            
-                            switch(invitation.getFlag())
-                            {
-                                case Protocol.FROM_ME:
-                                {
-                                    invitationsSended.add(new JLabel(mate.getText()));
-                                    
-                                    break;
-                                }
-                                case Protocol.TO_ME:
-                                {
-                                    JMenuItem mateAdd = new JMenuItem("Accept");
-                                    JMenuItem mateRefuse = new JMenuItem("Refuse");
-                                       
-                                    mateAdd.addActionListener
-                                    (
-                                        (event)->
-                                        {
-                                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.AGREE);
-                                        }   
-                                    );
-                                    
-                                    mateRefuse.addActionListener
-                                    (
-                                        (event)->
-                                        {
-                                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.DISAGREE);
-                                        }
-                                    );
-                                    
-                                    mate.add(mateAdd);
-                                    mate.add(mateRefuse);
-                                    invitationsReceived.add(mate);
-                                    
-                                    break;
-                                }
-                            }
                             break;
                         }
                         case Protocol.ANSWER:
                         {
-                            historyOfConversation.append(msg.getText() + "\n");
-                            
-                            // from me or to me
-                            Message source = new Message();
-                            source.receive(this.bufferedReader);
-                            
-                            historyOfConversation.append(source.getText() + "\n");
-                            
-                            // mates name
-                            Message agree = new Message();
-                            agree.receive(this.bufferedReader);
-                            
-                            if(source.getFlag() == Protocol.FROM_ME)
-                            {  
-                                // mate seeking
-                                for(Component menuComponent : invitationsSended.getMenuComponents()) 
-                                {
-                                    if(((JMenuItem)menuComponent).getText().equals(agree.getText()))
-                                    {
-                                        invitationsSended.remove(menuComponent);
-                                    }
-                                }
-                            }else
-                            if(source.getFlag() == Protocol.TO_ME)
-                            { 
-                                // mate seeking
-                                for(Component menuComponent : invitationsReceived.getMenuComponents()) 
-                                {
-                                    if(((JMenuItem)menuComponent).getText().equals(agree.getText()))
-                                    {
-                                        invitationsReceived.remove(menuComponent);
-                                    }
-                                }
-                            } 
-                            
-                            if(agree.getFlag() == Protocol.AGREE)
-                            {
-                                model.addElement(agree.getText());
-                            }
+                            this.directAnswer(msg);
                             
                             break;
                         }
@@ -383,6 +304,96 @@ public class View extends javax.swing.JFrame {
                 {
                     System.err.println(ex.getMessage() + "Not all data may be read");
                 }
+            }
+        }
+
+        private void directPersonInvitation(Message msg) throws IOException
+        {
+            historyOfConversation.append(msg.getText() + "\n");
+                            
+            Message invitation = new Message();
+            invitation.receive(this.bufferedReader);
+
+            JMenu mate = new JMenu(invitation.getText());
+
+            switch(invitation.getFlag())
+            {
+                case Protocol.FROM_ME:
+                {
+                    invitationsSended.add(new JLabel(mate.getText()));
+
+                    break;
+                }
+                case Protocol.TO_ME:
+                {
+                    JMenuItem mateAdd = new JMenuItem("Accept");
+                    JMenuItem mateRefuse = new JMenuItem("Refuse");
+
+                    mateAdd.addActionListener
+                    (
+                        (event)->
+                        {
+                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.AGREE);
+                        }   
+                    );
+
+                    mateRefuse.addActionListener
+                    (
+                        (event)->
+                        {
+                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.DISAGREE);
+                        }
+                    );
+
+                    mate.add(mateAdd);
+                    mate.add(mateRefuse);
+                    invitationsReceived.add(mate);
+
+                    break;
+                }
+            }
+        }
+
+        private void directAnswer(Message msg) throws IOException
+        {
+            historyOfConversation.append(msg.getText() + "\n");
+                            
+            // from me or to me
+            Message source = new Message();
+            source.receive(this.bufferedReader);
+
+            historyOfConversation.append(source.getText() + "\n");
+
+            // mates name
+            Message agree = new Message();
+            agree.receive(this.bufferedReader);
+
+            if(source.getFlag() == Protocol.FROM_ME)
+            {  
+                // mate seeking
+                for(Component menuComponent : invitationsSended.getMenuComponents()) 
+                {
+                    if(((JMenuItem)menuComponent).getText().equals(agree.getText()))
+                    {
+                        invitationsSended.remove(menuComponent);
+                    }
+                }
+            }else
+            if(source.getFlag() == Protocol.TO_ME)
+            { 
+                // mate seeking
+                for(Component menuComponent : invitationsReceived.getMenuComponents()) 
+                {
+                    if(((JMenuItem)menuComponent).getText().equals(agree.getText()))
+                    {
+                        invitationsReceived.remove(menuComponent);
+                    }
+                }
+            } 
+
+            if(agree.getFlag() == Protocol.AGREE)
+            {
+                model.addElement(agree.getText());
             }
         }
     }
