@@ -129,10 +129,10 @@ public class Model
          * 
          * @param name is the new name for user
          */
-        public void setUserName(String name)
+        public void setUserName(String name, String password)
         {
             this.userName = name;
-            this.printWriter.println(this.userName);
+            this.printWriter.println(this.userName + ":" + password);
         }
         
         /**

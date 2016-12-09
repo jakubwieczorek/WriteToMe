@@ -17,29 +17,32 @@ public class Controller
         this.theModel = new Model();
         
         String userName;
+        String password;
                 
         try
         {
             this.theView = new View(theModel.client.getInputStream(), this);        
             this.theView.setVisible(true);
             
-            String msgToDialog = "";
+            String msgToDialog = "Input your username:";
+            String msgToDialogPassword = "Input password:";
             
             while(true)
-            { 
+            {
                 while(true)
                 {
                     try
                     {
                         userName = this.theView.getUserName(msgToDialog);
-
+                        password = this.theView.getUserName(msgToDialogPassword);
+                        
                         if(!userName.equals(""))
                             break;
                     }
                     catch(NullPointerException ex){}
                 }
 
-                this.theModel.client.setUserName(userName);
+                this.theModel.client.setUserName(userName, password);
                 
                 Message returnInfo = new Message();
                 returnInfo.receive(this.theView.getBufferedReaeder());

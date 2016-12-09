@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -404,8 +403,7 @@ public class View extends javax.swing.JFrame {
         {
             return (String)JOptionPane.showInputDialog
             (
-                this, msg +
-                "Input your username:",
+                this, msg,
                 "Write2Me!",
                 JOptionPane.PLAIN_MESSAGE,
                 null,

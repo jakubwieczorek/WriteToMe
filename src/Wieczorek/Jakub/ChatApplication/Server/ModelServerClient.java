@@ -69,7 +69,7 @@ public class ModelServerClient
         return this.userName;
     }
 
-    void returnInformationAboutExistance(char flag, String msg) 
+    void returnInformationAboutExistance(String msg) 
     {   
         new Message(Protocol.PERSON_INQUIRE, msg).send(this.printWriter);
     }
@@ -96,21 +96,8 @@ public class ModelServerClient
         new Message(flag, userName).send(printWriter);
     }
 
-    void returnInformationAboutUserName(boolean isExist) 
+    void returnInformationAboutUserName(char flag, String msg) 
     {
-        Message returnInformation = new Message();
-            
-        if(!isExist)
-        {
-            returnInformation.setText("This username is free");
-            returnInformation.setFlag(Protocol.PERSON_DONT_EXIST);
-        }
-        else
-        {
-            returnInformation.setText("This username is occupied");
-            returnInformation.setFlag(Protocol.PERSON_EXIST);
-        }
-
-        returnInformation.send(this.printWriter);
+        new Message(flag, msg).send(printWriter);
     }
 }

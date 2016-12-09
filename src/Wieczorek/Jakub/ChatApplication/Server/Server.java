@@ -84,8 +84,12 @@ public class Server
         PrintWriter printWriter;
         
         String userName;
+        String password;
+        
         Thread thread;
+        
         ArrayList<ControllerServerClient>mates;
+        ArrayList<ControllerServerClient>invites;
 
         /**
          * Constructor to the NewClient class. 
@@ -115,18 +119,64 @@ public class Server
                 this.bufferedReader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
                 this.theView = new ViewServerClient(this.bufferedReader);
                 
-                // get userName from theView
-                this.userName = this.theView.getUserName();
                 
-                while(parent.findPerson(this.userName) != null)
+                // get userName and password from theView
+                try
                 {
-                    this.theModel.returnInformationAboutUserName(true);
-                    this.userName = this.theView.getUserName();
+                   String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                   this.userName = userNameAndPass[0];
+                   this.password = userNameAndPass[1];
+                }
+                catch(IllegalArgumentException ex)
+                {
+                    System.out.println(ex.getMessage());
                 }
                 
-                this.theModel.returnInformationAboutUserName(false);
+                boolean newUser = true;
+                ControllerServerClient person;
+                // user in the same message must send username:password
+                // if userName exists user must input password
+                while(true)
+                {
+                    // if userName exist, server must check password
+                    person = parent.findPerson(this.userName);
+                    
+                    // if person dont exist user is new user
+                    if(person == null)
+                    {
+                        System.out.println("New client logged as " + this.userName);
+                        break;
+                    }
+                    
+                    // if user exist and he inputed proper password
+                    if(this.password.equals(person.password))
+                    {
+                        System.out.println(this.userName + " input proper password");
+                        // set proper flag in order to invoke function which will initate users data
+                        newUser = false;
+                        break;
+                    }
+                    
+                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied");
+                    try
+                    {
+                       String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                       this.userName = userNameAndPass[0];
+                       this.password = userNameAndPass[1];
+                    }
+                    catch(IllegalArgumentException ex)
+                    {
+                        System.out.println(ex.getMessage());
+                    }
+                }
                 
-                System.out.println("New client logged as " + this.userName);
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "This username is free");
+            
+                if(!newUser)
+                {
+                    // this.theModel.initiateUsersData(person.mates);
+                    // parent.clients.remove(person);
+                }
             }
             catch(IOException ex)
             {
@@ -179,7 +229,7 @@ public class Server
                 theModel.giveInviteInformation(this.printWriter, Protocol.FROM_ME, "You invited " + receiver.userName + " to mates!", receiver.userName);
             }
             else
-                theModel.returnInformationAboutExistance(Protocol.PERSON_DONT_EXIST, "This person doesn't exist.");
+                theModel.returnInformationAboutExistance("This person doesn't exist.");
         }
 
         private void directAnswer() throws IOException
