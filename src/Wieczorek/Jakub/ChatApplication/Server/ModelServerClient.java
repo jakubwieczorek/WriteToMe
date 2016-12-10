@@ -3,6 +3,7 @@ package Wieczorek.Jakub.ChatApplication.Server;
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 
 /**
@@ -10,8 +11,15 @@ import java.util.ArrayList;
  */
 public class ModelServerClient 
 {
-    String userName;
-    PrintWriter printWriter;
+    private String userName;
+    private String password;
+    private PrintWriter printWriter;
+    
+    private Socket socket;
+
+    ArrayList<Server.ControllerServerClient>mates;
+    ArrayList<Server.ControllerServerClient>invitesFromMe;
+    ArrayList<Server.ControllerServerClient>invitesToMe;
     
     public ModelServerClient(String userName, PrintWriter printWriter) 
     {
@@ -44,7 +52,7 @@ public class ModelServerClient
             //if he is in local mates
             for(Server.ControllerServerClient mate : mates)
             {
-                if(mate.userName.equals(userName))
+                if(mate.getTheModel().getUserName().equals(userName))
                 {
                     return mate;
                 }
@@ -59,19 +67,19 @@ public class ModelServerClient
         mates.add(mate);
     }
 
-    public void setName(String userName)
+    public void setUserName(String userName)
     {
         this.userName = userName;
     }
 
-    public String getName()
+    public String getUserName()
     {
         return this.userName;
     }
 
     void returnInformationAboutExistance(String msg) 
     {   
-        new Message(Protocol.PERSON_INQUIRE, msg).send(this.printWriter);
+        new Message(Protocol.PERSON_INQUIRE, msg).send(this.getPrintWriter());
     }
 
     void giveInviteInformation(PrintWriter printWriter, char flag, String msg, String msgTwo) 
@@ -98,6 +106,53 @@ public class ModelServerClient
 
     void returnInformationAboutUserName(char flag, String msg) 
     {
-        new Message(flag, msg).send(printWriter);
+        new Message(flag, msg).send(getPrintWriter());
+    }
+
+    void initiateUsersData(Server.ControllerServerClient person) 
+    {
+        
+    }
+
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    /**
+     * @return the printWriter
+     */
+    public PrintWriter getPrintWriter() {
+        return printWriter;
+    }
+
+    /**
+     * @param printWriter the printWriter to set
+     */
+    public void setPrintWriter(PrintWriter printWriter) {
+        this.printWriter = printWriter;
+    }
+
+    /**
+     * @return the socket
+     */
+    public Socket getSocket() {
+        return socket;
+    }
+
+    /**
+     * @param socket the socket to set
+     */
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 }
