@@ -57,14 +57,21 @@ public class Server
                 // here server is waiting for client
                 Socket socket = this.server.accept();    
                 
-                // newClient is created with gotten socket 
-                Server.ControllerServerClient newClient = new Server.ControllerServerClient(socket, this);
+                try
+                {
+                    // newClient is created with gotten socket 
+                    Server.ControllerServerClient newClient = new Server.ControllerServerClient(socket, this);
                 
-                // newClient is added to database of clients
-                this.clients.add(newClient);
+                    // newClient is added to database of clients
+                    this.clients.add(newClient);
 
-                // now client in server lives independently, when is called .start() method in newClient is called .run() method
-                newClient.thread.start();
+                    // now client in server lives independently, when is called .start() method in newClient is called .run() method
+                    newClient.thread.start();
+                }
+                catch(NullPointerException ex)
+                {
+                    System.err.println(ex.getMessage());
+                }
             }
         }
         catch(IOException ex)
@@ -84,12 +91,13 @@ public class Server
          * Constructor to the NewClient class. 
          * 
          * @param socket is the same socket as in client who registered to server
-         * @param userName is userName of client, now he must send it by simple message. In future will be sent automatically. 
+         * @param userName is userls
+         * Name of client, now he must send it by simple message. In future will be sent automatically. 
          * @param mates is list of mates.
          * 
          * @see Wieczorek.Jakub.ChatApplication.ChatServer
          */
-        public ControllerServerClient(Socket socket, Server parent)
+        public ControllerServerClient(Socket socket, Server parent) throws NullPointerException
         {
             // try initiate theView and theModel
             try
@@ -110,9 +118,10 @@ public class Server
                 // get userName and password from theView
                 try
                 {
-                   String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-                   this.theModel.setUserName(userNameAndPass[0]);
-                   this.theModel.setPassword(userNameAndPass[1]);
+                    String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                    
+                    this.theModel.setUserName(userNameAndPass[0]);
+                    this.theModel.setPassword(userNameAndPass[1]);
                 }
                 catch(IllegalArgumentException ex)
                 {
@@ -162,7 +171,15 @@ public class Server
                 if(!newUser)
                 {
                     this.theModel.initiateUsersData(person);
-                    // parent.clients.remove(person);
+                    // also in all mates list of mates now is neccessary to switch me and meoldversion
+                    
+                    this.theModel.sendSocketInformationToMates(person);
+                    
+                    this.theModel.setLists(person);
+                    
+                    
+                    //person.getTheView().getBufferedReader().close();
+                    parent.clients.remove(person);
                 }
             }
             catch(IOException ex)
@@ -186,11 +203,13 @@ public class Server
 
                 // here server is looking for a receiver
                 ControllerServerClient receiver = getTheModel().findPerson(userName, this.theModel.mates);
-
-                // send msg to proper person
-                getTheView().sendMessage(this.theModel.getUserName(),
-                        new PrintWriter(receiver.getTheModel().getSocket().getOutputStream(), true),
-                            msg);
+                if(receiver != null)
+                {
+                    // send msg to proper person
+                    getTheView().sendMessage(this.theModel.getUserName(),
+                            new PrintWriter(receiver.getTheModel().getSocket().getOutputStream(), true),
+                                msg);
+                } 
             }
             catch(IllegalArgumentException ex)
             {
@@ -208,13 +227,16 @@ public class Server
                 PrintWriter matePrintWriter = new PrintWriter(receiver.getTheModel().getSocket().getOutputStream(), true);
 
                 // give invite information to mate
-                getTheModel().giveInviteInformation(matePrintWriter, Protocol.TO_ME, this.theModel.getUserName() + " invited You to mates!", this.theModel.getUserName());
-
+                this.getTheModel().giveInviteInformation(matePrintWriter, Protocol.TO_ME, this.theModel.getUserName() + " invited You to mates!", this.theModel.getUserName());
+               
                 // give invite information to me 
-                getTheModel().giveInviteInformation(this.theModel.getPrintWriter(), Protocol.FROM_ME, "You invited " + receiver.getTheModel().getUserName() + " to mates!", receiver.getTheModel().getUserName());
+                this.getTheModel().giveInviteInformation(this.theModel.getPrintWriter(), Protocol.FROM_ME, "You invited " + receiver.getTheModel().getUserName() + " to mates!", receiver.getTheModel().getUserName());
+
+                receiver.getTheModel().invitesToMe.add(this);
+                this.theModel.invitesFromMe.add(receiver);
             }
             else
-                getTheModel().returnInformationAboutExistance("This person doesn't exist.");
+                this.getTheModel().returnInformationAboutExistance("This person doesn't exist.");
         }
 
         private void directAnswer() throws IOException
@@ -249,6 +271,9 @@ public class Server
 
                     getTheModel().giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.DISAGREE, this.theModel.getUserName(), this.theModel.getUserName() + " refuse your invitation.");
                 }
+                
+                mate.getTheModel().invitesFromMe.remove(this);
+                this.theModel.invitesToMe.remove(mate);
             }
         }                 
                             
@@ -283,7 +308,8 @@ public class Server
                         }
                         case Protocol.EXIT:
                         {
-                            getTheModel().sendInformationAboutExitToMates(this.theModel.mates);
+                            this.theView.getBufferedReader().close();
+                            getTheModel().sendInformationAboutExitToMates();
                             
                             break;
                         }

@@ -3,6 +3,8 @@ package Wieczorek.Jakub.ChatApplication.Client;
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.awt.Component;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,6 +61,7 @@ public class View extends javax.swing.JFrame {
     public View(InputStream inputStream, Controller controller) 
     {
         initComponents();
+        
         this.listOfMates.setModel(this.model);
         
         this.receiverMessages = new View.ReceiverMessages(inputStream);
@@ -152,6 +155,20 @@ public class View extends javax.swing.JFrame {
                     sendButton.setEnabled(false);
             }
         );
+    
+        this.addWindowListener
+        (
+            new WindowAdapter()
+            {
+                @Override
+                public void windowClosing(WindowEvent e)
+                {
+                    controller.upgradeModelExitMsg();
+                    System.exit(0);
+                    e.getWindow().dispose();
+                }
+            }
+        );
     }
     
     @SuppressWarnings("unchecked")
@@ -170,7 +187,7 @@ public class View extends javax.swing.JFrame {
         invitationsSended = new javax.swing.JMenu();
         invitationsReceived = new javax.swing.JMenu();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Write2Me!");
         setResizable(false);
 
@@ -297,6 +314,16 @@ public class View extends javax.swing.JFrame {
                             
                             break;
                         }
+                        case Protocol.INITIATE:
+                        {
+                            this.directInitiation(msg);
+                            
+                            break;
+                        }
+                        case Protocol.EXIT:
+                        {
+                            this.directExit(msg);
+                        }
                     }
                 }
                 catch(IOException ex)
@@ -325,33 +352,38 @@ public class View extends javax.swing.JFrame {
                 }
                 case Protocol.TO_ME:
                 {
-                    JMenuItem mateAdd = new JMenuItem("Accept");
-                    JMenuItem mateRefuse = new JMenuItem("Refuse");
-
-                    mateAdd.addActionListener
-                    (
-                        (event)->
-                        {
-                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.AGREE);
-                        }   
-                    );
-
-                    mateRefuse.addActionListener
-                    (
-                        (event)->
-                        {
-                            controller.upgradeModelMateAnswer(mate.getText(), Protocol.DISAGREE);
-                        }
-                    );
-
-                    mate.add(mateAdd);
-                    mate.add(mateRefuse);
-                    invitationsReceived.add(mate);
-
+                    this.directPersonInvitationToMe(mate);
+                    
                     break;
                 }
             }
         }
+        
+        private void directPersonInvitationToMe(JMenu mate)
+        {   
+            JMenuItem mateAdd = new JMenuItem("Accept");
+            JMenuItem mateRefuse = new JMenuItem("Refuse");
+
+            mateAdd.addActionListener
+            (
+                (event)->
+                {
+                    controller.upgradeModelMateAnswer(mate.getText(), Protocol.AGREE);
+                }   
+            );
+
+            mateRefuse.addActionListener
+            (
+                (event)->
+                {
+                    controller.upgradeModelMateAnswer(mate.getText(), Protocol.DISAGREE);
+                }
+            );
+
+            mate.add(mateAdd);
+            mate.add(mateRefuse);
+            invitationsReceived.add(mate);
+        }   
 
         private void directAnswer(Message msg) throws IOException
         {
@@ -395,26 +427,63 @@ public class View extends javax.swing.JFrame {
                 model.addElement(agree.getText());
             }
         }
+
+        private void directInitiation(Message msg) throws IOException 
+        {
+            historyOfConversation.append(msg.getText() + "\n");
+            
+            Message section = new Message();
+            
+            
+            section.receive(this.bufferedReader);
+            
+            while(section.getFlag() != Protocol.INITIATE)
+            {
+                switch(section.getFlag())
+                {
+                    case Protocol.MATE:
+                    {
+                        model.addElement(section.getText());
+                        
+                        break;
+                    }
+                    case Protocol.TO_ME:
+                    {
+                        JMenu mate = new JMenu(section.getText());
+                        
+                        this.directPersonInvitationToMe(mate);
+                        
+                        break;
+                    }
+                    case Protocol.FROM_ME:
+                    {
+                        JMenu mate = new JMenu(section.getText());
+                        
+                        invitationsSended.add(new JMenuItem(mate.getText()));
+
+                        break;
+                    }
+                }
+                
+                section.receive(this.bufferedReader);
+            }
+        }
+
+        private void directExit(Message matesUserName) 
+        {
+            for(int i = 0; i < model.getSize(); i++)
+            {
+                /*if(matesUserName.getText().equals(((()model.elementAt(i))).getText()))
+                {
+                    
+                }*/
+            }
+        }
     }
     
-    String getUserName(String msg) throws NullPointerException
+    String getUserName(String msg)
     {
-        try
-        {
-            return (String)JOptionPane.showInputDialog
-            (
-                this, msg,
-                "Write2Me!",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                null,
-                ""
-            );
-        }
-        catch(NullPointerException ex)
-        {
-            throw new NullPointerException("Username wasn't read");
-        }  
+        return (String)JOptionPane.showInputDialog(this, msg, "Write2Me!", JOptionPane.PLAIN_MESSAGE, null, null,"");
     }
     
         

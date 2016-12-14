@@ -25,7 +25,7 @@
     </Menu>
   </NonVisualComponents>
   <Properties>
-    <Property name="defaultCloseOperation" type="int" value="3"/>
+    <Property name="defaultCloseOperation" type="int" value="0"/>
     <Property name="title" type="java.lang.String" value="Write2Me!"/>
     <Property name="resizable" type="boolean" value="false"/>
   </Properties>

@@ -49,7 +49,6 @@ public class ModelServerClient
     {
         if(mates != null)
         {
-            //if he is in local mates
             for(Server.ControllerServerClient mate : mates)
             {
                 if(mate.getTheModel().getUserName().equals(userName))
@@ -90,9 +89,15 @@ public class ModelServerClient
         new Message(flag, msgTwo).send(printWriter);
     }
 
-    void sendInformationAboutExitToMates(ArrayList<Server.ControllerServerClient> mates) 
+    void sendInformationAboutExitToMates() 
     {
-        
+        this.mates.forEach
+        (
+            (mate)->
+            {
+                new Message(Protocol.EXIT, this.userName).send(this.printWriter);
+            }
+        );
     }
 
     void giveAddedInformation(PrintWriter printWriter, char who, char flag, String userName, String msg) 
@@ -111,9 +116,33 @@ public class ModelServerClient
 
     void initiateUsersData(Server.ControllerServerClient person) 
     {
+        new Message(Protocol.INITIATE, "").send(this.printWriter);
         
+        // send mates username
+        this.sendDataLoop(Protocol.MATE, person.getTheModel().mates);
+        
+        new Message(Protocol.PERSON_INVITATION, "").send(this.printWriter);
+        
+        // send invities for me username
+        this.sendDataLoop(Protocol.TO_ME, person.getTheModel().invitesToMe);
+        
+        // send invities from me username
+        this.sendDataLoop(Protocol.FROM_ME, person.getTheModel().invitesFromMe);
+        
+        new Message(Protocol.INITIATE, "Initiation complete.").send(this.printWriter);
     }
-
+    
+    private void sendDataLoop(char flag, ArrayList<Server.ControllerServerClient>mates)
+    {
+        mates.forEach
+        (
+            (mate) -> 
+            {
+                new Message(flag, mate.getTheModel().getUserName()).send(this.printWriter);
+            }
+        );
+    }
+    
     /**
      * @return the password
      */
@@ -155,4 +184,53 @@ public class ModelServerClient
     public void setSocket(Socket socket) {
         this.socket = socket;
     }
+
+    void setLists(Server.ControllerServerClient person) 
+    {
+        this.mates = person.getTheModel().mates;
+        this.invitesFromMe = person.getTheModel().invitesFromMe;
+        this.invitesToMe = person.getTheModel().invitesToMe;
+    }
+    
+    //*************************************
+    void sendSocketInformationToMates(Server.ControllerServerClient myOldVersion) 
+    {
+        myOldVersion.getTheModel().mates.forEach
+        (
+            (mate)-> 
+            {
+                this.sendInfoAboutSocket(mate.getTheModel().mates);
+            }
+        );
+        
+        myOldVersion.getTheModel().mates.forEach
+        (
+            (mate)-> 
+            {
+                this.sendInfoAboutSocket(mate.getTheModel().invitesFromMe);
+            }
+        );
+                
+        myOldVersion.getTheModel().mates.forEach
+        (
+            (mate)-> 
+            {
+                this.sendInfoAboutSocket(mate.getTheModel().invitesToMe);
+            }
+        );
+    }
+    
+    private void sendInfoAboutSocket(ArrayList<Server.ControllerServerClient>person)
+    {
+        
+        for(Server.ControllerServerClient mate : person)
+        {
+            if(mate.getTheModel().getUserName().equals(this.userName))
+            {
+                mate.getTheModel().setSocket(this.socket);
+                break;
+            }
+        }
+    }
+    //**************************************
 }

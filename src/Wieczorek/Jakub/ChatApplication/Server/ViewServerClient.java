@@ -22,7 +22,7 @@ public class ViewServerClient
     {
         try
         {
-            return bufferedReader.readLine();
+            return getBufferedReader().readLine();
         }
         catch(IOException ex)
         {
@@ -34,7 +34,7 @@ public class ViewServerClient
     {
         Message msg = new Message();
         
-        msg.receive(this.bufferedReader);
+        msg.receive(this.getBufferedReader());
 
         
         return msg;
@@ -44,5 +44,19 @@ public class ViewServerClient
     {
         // from who and contents
         new Message(Protocol.MESSAGE, fromWho + " wrote:" + msg).send(printWriter);
+    }
+
+    /**
+     * @return the bufferedReader
+     */
+    public BufferedReader getBufferedReader() {
+        return bufferedReader;
+    }
+
+    /**
+     * @param bufferedReader the bufferedReader to set
+     */
+    public void setBufferedReader(BufferedReader bufferedReader) {
+        this.bufferedReader = bufferedReader;
     }
 }

@@ -65,4 +65,14 @@ public class Protocol
     * Flag which indicate that after this flag is person who invie.
     */
     public static final char TO_ME = 'b';
+    
+    /**
+    * Flag which indicate that after this flag is person who invie.
+    */
+    public static final char INITIATE = 'c';
+    
+    /**
+    * Flag which indicate that after this flag is person who invie.
+    */
+    public static final char MATE = 'd';
 }

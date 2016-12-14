@@ -31,15 +31,23 @@ public class Controller
             {
                 while(true)
                 {
+                    userName = this.theView.getUserName(msgToDialog);
+                    
                     try
                     {
-                        userName = this.theView.getUserName(msgToDialog);
-                        password = this.theView.getUserName(msgToDialogPassword);
-                        
                         if(!userName.equals(""))
-                            break;
+                        {
+                            password = this.theView.getUserName(msgToDialogPassword);
+                            
+                            if(!password.equals(""))
+                                break;
+                        }
                     }
-                    catch(NullPointerException ex){}
+                    catch(NullPointerException ex)
+                    {
+                        this.theView.dispose();
+                        System.exit(0);
+                    }
                 }
 
                 this.theModel.client.setUserName(userName, password);
@@ -90,5 +98,10 @@ public class Controller
         theModel.client.sendMsg(new Message(Protocol.ANSWER, ""));
 
         theModel.client.sendMsg(new Message(flag, person));              
+    }
+
+    void upgradeModelExitMsg()
+    {
+        this.theModel.client.sendMsg(new Message(Protocol.EXIT, ""));
     }
 }
