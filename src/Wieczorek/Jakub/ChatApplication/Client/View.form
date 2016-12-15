@@ -126,7 +126,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="addMateButton">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Add"/>
+        <Property name="text" type="java.lang.String" value="Invite"/>
         <Property name="toolTipText" type="java.lang.String" value="&quot;Enter the message and click me.&quot;"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>

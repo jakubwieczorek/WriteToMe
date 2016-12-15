@@ -153,7 +153,7 @@ public class Server
                         break;
                     }
                     
-                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied");
+                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
                     try
                     {
                        String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
@@ -166,10 +166,17 @@ public class Server
                     }
                 }
                 
-                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "This username is free");
-            
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
+                
                 if(!newUser)
                 {
+                    if(person.getTheModel().isLogged())
+                    {
+                        this.theModel.returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You are logged at different device.");
+                        
+                        throw new NullPointerException(this.getTheModel().getUserName() + " tries to logg in more than one device.");
+                    }
+                    
                     this.theModel.initiateUsersData(person);
                     // also in all mates list of mates now is neccessary to switch me and meoldversion
                     
@@ -177,9 +184,13 @@ public class Server
                     
                     this.theModel.setLists(person);
                     
+                    person.getTheView().getBufferedReader().close();
                     
-                    //person.getTheView().getBufferedReader().close();
                     parent.clients.remove(person);
+                }
+                else
+                {
+                    this.theModel.setLogged(true);
                 }
             }
             catch(IOException ex)
@@ -219,9 +230,16 @@ public class Server
 
         private void directPersonInquire(Message messageFromMe) throws IOException
         {
+            if(messageFromMe.getText().equals(this.theModel.getUserName()))
+            {
+                this.getTheModel().returnInformationAboutExistance("You can't add yourself to mates.");
+                return;
+            }
+                
+            
             // find mate
             ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
-
+                
             if(receiver != null)
             {
                 PrintWriter matePrintWriter = new PrintWriter(receiver.getTheModel().getSocket().getOutputStream(), true);
@@ -308,7 +326,7 @@ public class Server
                         }
                         case Protocol.EXIT:
                         {
-                            this.theView.getBufferedReader().close();
+                            getTheModel().setLogged(false);
                             getTheModel().sendInformationAboutExitToMates();
                             
                             break;

@@ -203,7 +203,7 @@ public class View extends javax.swing.JFrame {
 
         textToSend.setToolTipText("\"Write something. See instruction.\"");
 
-        addMateButton.setText("Add");
+        addMateButton.setText("Invite");
         addMateButton.setToolTipText("\"Enter the message and click me.\"");
         addMateButton.setEnabled(false);
 
@@ -323,6 +323,12 @@ public class View extends javax.swing.JFrame {
                         case Protocol.EXIT:
                         {
                             this.directExit(msg);
+                        }
+                        case Protocol.LOGGED_IN_DIFFERENT_DEVICE:
+                        {
+                            historyOfConversation.append(msg.getText() + "\n");
+                            
+                            setEnabled(false);
                         }
                     }
                 }
@@ -473,10 +479,11 @@ public class View extends javax.swing.JFrame {
         {
             for(int i = 0; i < model.getSize(); i++)
             {
-                /*if(matesUserName.getText().equals(((()model.elementAt(i))).getText()))
-                {
-                    
-                }*/
+                System.out.println(model.getElementAt(i).toString());
+                
+                //if(matesUserName.getText().equals(model.getElementAt(i)));
+                   // System.out.println(model.get(i).getClass().toString());
+                    //((Component)model.getElementAt(i)).setEnabled(false); - here find out how setEnabled 
             }
         }
     }

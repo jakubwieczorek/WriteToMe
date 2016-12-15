@@ -14,7 +14,7 @@ public class ModelServerClient
     private String userName;
     private String password;
     private PrintWriter printWriter;
-    
+    private boolean logged;
     private Socket socket;
 
     ArrayList<Server.ControllerServerClient>mates;
@@ -25,6 +25,7 @@ public class ModelServerClient
     {
         this.userName = userName;
         this.printWriter = printWriter;
+        this.logged = true;
     }
     
     public ModelServerClient(PrintWriter printWriter) 
@@ -95,7 +96,7 @@ public class ModelServerClient
         (
             (mate)->
             {
-                new Message(Protocol.EXIT, this.userName).send(this.printWriter);
+                new Message(Protocol.EXIT, this.userName).send(mate.getTheModel().getPrintWriter());
             }
         );
     }
@@ -233,4 +234,18 @@ public class ModelServerClient
         }
     }
     //**************************************
+
+    /**
+     * @return the logged
+     */
+    public boolean isLogged() {
+        return logged;
+    }
+
+    /**
+     * @param logged the logged to set
+     */
+    public void setLogged(boolean logged) {
+        this.logged = logged;
+    }
 }
