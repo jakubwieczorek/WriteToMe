@@ -104,4 +104,9 @@ public class Controller
     {
         this.theModel.client.sendMsg(new Message(Protocol.EXIT, ""));
     }
+
+    void upgradeModelMateRemove(String userName) 
+    {
+        this.theModel.client.sendMsg(new Message(Protocol.REMOVE_MATE, userName));
+    }
 }

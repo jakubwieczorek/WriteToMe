@@ -172,9 +172,7 @@ public class Server
                 {
                     if(person.getTheModel().isLogged())
                     {
-                        this.theModel.returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You are logged at different device.");
-                        
-                        throw new NullPointerException(this.getTheModel().getUserName() + " tries to logg in more than one device.");
+                        person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
                     }
                     
                     this.theModel.initiateUsersData(person);
@@ -331,6 +329,12 @@ public class Server
                             
                             break;
                         }
+                        case Protocol.REMOVE_MATE:
+                        {
+                            this.directRemoveMate(messageFromMe);
+                            
+                            break;
+                        }
                     }
                 }
             }
@@ -357,15 +361,22 @@ public class Server
         /**
          * @return the theModel
          */
-        public ModelServerClient getTheModel() {
+        public ModelServerClient getTheModel() 
+        {
             return theModel;
         }
 
         /**
          * @param theModel the theModel to set
          */
-        public void setTheModel(ModelServerClient theModel) {
+        public void setTheModel(ModelServerClient theModel) 
+        {
             this.theModel = theModel;
+        }
+
+        private void directRemoveMate(Message messageFromMe) 
+        {
+            this.theModel.giveRemoveInformationToMates(messageFromMe.getText());
         }
     }
 }

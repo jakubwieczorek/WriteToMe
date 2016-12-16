@@ -238,14 +238,31 @@ public class ModelServerClient
     /**
      * @return the logged
      */
-    public boolean isLogged() {
+    public boolean isLogged() 
+    {
         return logged;
     }
 
     /**
      * @param logged the logged to set
      */
-    public void setLogged(boolean logged) {
+    public void setLogged(boolean logged) 
+    {
         this.logged = logged;
+    }
+
+    void giveRemoveInformationToMates(String mateToRemove) 
+    {
+        for(Server.ControllerServerClient mate : this.mates)
+        {
+            if(mate.getTheModel().getUserName().equals(mateToRemove))
+            {
+                new Message(Protocol.REMOVE_MATE, this.userName).send(mate.getTheModel().getPrintWriter());
+               
+                this.mates.remove(mate);
+                
+                break;
+            }
+        }
     }
 }

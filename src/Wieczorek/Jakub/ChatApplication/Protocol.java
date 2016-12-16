@@ -75,10 +75,14 @@ public class Protocol
     * Flag which indicate that after this flag is person who invie.
     */
     public static final char MATE = 'd';
-    
-    
+      
     /**
     * Flag which indicate that user is logged in different device.
     */
     public static final char LOGGED_IN_DIFFERENT_DEVICE = 'e';
+    
+    /**
+    * Flag which indicate that user is logged in different device.
+    */
+    public static final char REMOVE_MATE = 'f';
 }

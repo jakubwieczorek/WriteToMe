@@ -3,16 +3,23 @@ package Wieczorek.Jakub.ChatApplication.Client;
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -63,6 +70,18 @@ public class View extends javax.swing.JFrame {
         initComponents();
         
         this.listOfMates.setModel(this.model);
+        
+        this.listOfMates.setCellRenderer
+        (
+            new DefaultListCellRenderer()
+            {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) 
+                {
+                   return (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                }
+             }
+        );
         
         this.receiverMessages = new View.ReceiverMessages(inputStream);
         
@@ -153,6 +172,52 @@ public class View extends javax.swing.JFrame {
                     sendButton.setEnabled(true);
                 else
                     sendButton.setEnabled(false);
+            }
+        );
+        
+        class PopUpDemo extends JPopupMenu 
+        {
+            JMenuItem anItem;
+            
+            public PopUpDemo(String userName)
+            {
+                anItem = new JMenuItem("Remove " + userName + " from mates");
+                anItem.addActionListener
+                (
+                    (event)->
+                    {
+                       model.removeElement(userName);
+                       
+                       controller.upgradeModelMateRemove(userName);
+                    }
+                ); // with - python coś jak del.
+                
+                this.add(anItem);
+            }
+        }
+        
+        this.listOfMates.addMouseListener
+        ( 
+            new MouseAdapter()
+            {
+                @Override
+                public void mousePressed(MouseEvent e)
+                {
+                    if(SwingUtilities.isRightMouseButton(e))
+                    {   
+                        try
+                        {
+                            listOfMates.setSelectedIndex(listOfMates.locationToIndex(e.getPoint()));
+
+                            PopUpDemo menu = new PopUpDemo(model.get(listOfMates.getSelectedIndex()).toString());
+                            menu.show(e.getComponent(), e.getX(), e.getY());
+                        }
+                        catch(ArrayIndexOutOfBoundsException ex)
+                        {
+                            
+                        }
+                    }
+                }
             }
         );
     
@@ -323,12 +388,22 @@ public class View extends javax.swing.JFrame {
                         case Protocol.EXIT:
                         {
                             this.directExit(msg);
+                            
+                            break;
                         }
                         case Protocol.LOGGED_IN_DIFFERENT_DEVICE:
                         {
                             historyOfConversation.append(msg.getText() + "\n");
                             
                             setEnabled(false);
+                            
+                            break;
+                        }
+                        case Protocol.REMOVE_MATE:
+                        {
+                            this.directRemoveMate(msg);
+                            
+                            break;
                         }
                     }
                 }
@@ -477,14 +552,23 @@ public class View extends javax.swing.JFrame {
 
         private void directExit(Message matesUserName) 
         {
+            System.out.println(matesUserName.getText());
+            
             for(int i = 0; i < model.getSize(); i++)
             {
-                System.out.println(model.getElementAt(i).toString());
-                
-                //if(matesUserName.getText().equals(model.getElementAt(i)));
-                   // System.out.println(model.get(i).getClass().toString());
-                    //((Component)model.getElementAt(i)).setEnabled(false); - here find out how setEnabled 
+                System.out.println(model.get(i));
+    
+                if(matesUserName.getText().equals(model.getElementAt(i)));
+                   //System.out.println(model.get(i).getClass().toString());
+                   //((Component)model.getElementAt(i)).setEnabled(false); 
             }
+        }
+
+        private void directRemoveMate(Message msg) 
+        {
+            historyOfConversation.append(msg.getText() + " remove you from mates." + "\n");
+                            
+            model.removeElement(msg.getText());
         }
     }
     
@@ -492,8 +576,7 @@ public class View extends javax.swing.JFrame {
     {
         return (String)JOptionPane.showInputDialog(this, msg, "Write2Me!", JOptionPane.PLAIN_MESSAGE, null, null,"");
     }
-    
-        
+      
     public void setUserName(String userName)
     {
         this.userName = userName;
