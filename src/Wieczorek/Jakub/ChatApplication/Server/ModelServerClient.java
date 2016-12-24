@@ -4,7 +4,7 @@ import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jakub
@@ -17,12 +17,15 @@ public class ModelServerClient
     private boolean logged;
     private Socket socket;
 
-    ArrayList<Server.ControllerServerClient>mates;
-    ArrayList<Server.ControllerServerClient>invitesFromMe;
-    ArrayList<Server.ControllerServerClient>invitesToMe;
+    ConcurrentHashMap<String, Server.ControllerServerClient>mates, invitesFromMe, invitesToMe;
     
     public ModelServerClient(String userName, PrintWriter printWriter) 
     {
+        
+        this.mates = new ConcurrentHashMap<>();
+        this.invitesFromMe = new ConcurrentHashMap<>();
+        this.invitesToMe = new ConcurrentHashMap<>();
+        
         this.userName = userName;
         this.printWriter = printWriter;
         this.logged = true;
@@ -46,25 +49,9 @@ public class ModelServerClient
         }
     }
 
-    Server.ControllerServerClient findPerson(String userName, ArrayList<Server.ControllerServerClient>mates)
+    Server.ControllerServerClient findPerson(String userName)
     {
-        if(mates != null)
-        {
-            for(Server.ControllerServerClient mate : mates)
-            {
-                if(mate.getTheModel().getUserName().equals(userName))
-                {
-                    return mate;
-                }
-            }
-        } 
-
-        return null;
-    }
-    
-    void addMate(ArrayList<Server.ControllerServerClient>mates, Server.ControllerServerClient mate)
-    {
-        mates.add(mate);
+        return this.mates.get(userName);
     }
 
     public void setUserName(String userName)
@@ -92,11 +79,11 @@ public class ModelServerClient
 
     void sendInformationAboutExitToMates() 
     {
-        this.mates.forEach
+        this.mates.entrySet().forEach
         (
-            (mate)->
+            (mate) -> 
             {
-                new Message(Protocol.EXIT, this.userName).send(mate.getTheModel().getPrintWriter());
+                new Message(Protocol.EXIT, this.userName).send(mate.getValue().getTheModel().getPrintWriter());
             }
         );
     }
@@ -133,13 +120,13 @@ public class ModelServerClient
         new Message(Protocol.INITIATE, "Initiation complete.").send(this.printWriter);
     }
     
-    private void sendDataLoop(char flag, ArrayList<Server.ControllerServerClient>mates)
+    private void sendDataLoop(char flag, ConcurrentHashMap<String, Server.ControllerServerClient>mates)
     {
-        mates.forEach
+        mates.entrySet().forEach
         (
-            (mate) -> 
+            (mate)-> 
             {
-                new Message(flag, mate.getTheModel().getUserName()).send(this.printWriter);
+                new Message(flag, mate.getValue().getTheModel().getUserName()).send(this.printWriter);
             }
         );
     }
@@ -193,48 +180,33 @@ public class ModelServerClient
         this.invitesToMe = person.getTheModel().invitesToMe;
     }
     
-    //*************************************
     void sendSocketInformationToMates(Server.ControllerServerClient myOldVersion) 
     {
-        myOldVersion.getTheModel().mates.forEach
+        myOldVersion.getTheModel().mates.entrySet().forEach
         (
             (mate)-> 
             {
-                this.sendInfoAboutSocket(mate.getTheModel().mates);
+                mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setSocket(this.socket);   
             }
         );
         
-        myOldVersion.getTheModel().mates.forEach
+        myOldVersion.getTheModel().invitesFromMe.entrySet().forEach
         (
             (mate)-> 
             {
-                this.sendInfoAboutSocket(mate.getTheModel().invitesFromMe);
+                mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setSocket(this.socket);
             }
         );
-                
-        myOldVersion.getTheModel().mates.forEach
+        
+        myOldVersion.getTheModel().invitesToMe.entrySet().forEach
         (
             (mate)-> 
             {
-                this.sendInfoAboutSocket(mate.getTheModel().invitesToMe);
+                mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setSocket(this.socket);
             }
         );
     }
     
-    private void sendInfoAboutSocket(ArrayList<Server.ControllerServerClient>person)
-    {
-        
-        for(Server.ControllerServerClient mate : person)
-        {
-            if(mate.getTheModel().getUserName().equals(this.userName))
-            {
-                mate.getTheModel().setSocket(this.socket);
-                break;
-            }
-        }
-    }
-    //**************************************
-
     /**
      * @return the logged
      */
@@ -253,16 +225,8 @@ public class ModelServerClient
 
     void giveRemoveInformationToMates(String mateToRemove) 
     {
-        for(Server.ControllerServerClient mate : this.mates)
-        {
-            if(mate.getTheModel().getUserName().equals(mateToRemove))
-            {
-                new Message(Protocol.REMOVE_MATE, this.userName).send(mate.getTheModel().getPrintWriter());
-               
-                this.mates.remove(mate);
-                
-                break;
-            }
-        }
+        new Message(Protocol.REMOVE_MATE, this.userName).send(this.mates.get(mateToRemove).getTheModel().getPrintWriter());
+
+        this.mates.remove(this.mates.get(mateToRemove).getTheModel().getUserName());
     }
 }

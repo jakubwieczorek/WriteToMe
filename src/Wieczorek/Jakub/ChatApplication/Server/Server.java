@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jakub
@@ -18,7 +18,7 @@ public class Server
     /**
      * Keeping all clients as a new threads.
      */
-    public ArrayList<ControllerServerClient>clients;
+    public ConcurrentHashMap<String, ControllerServerClient>clients;
     
     /**
      * PORT to server field.
@@ -28,7 +28,7 @@ public class Server
     
     public Server()
     {
-        this.clients = new ArrayList<>();
+        this.clients = new ConcurrentHashMap<>();
         this.PORT = 1550;
         
         this.runServer();
@@ -36,12 +36,7 @@ public class Server
     
     public ControllerServerClient findPerson(String userName)
     {
-        for (ControllerServerClient person : this.clients) {
-            if(person.getTheModel().getUserName().equals(userName))
-                return person;
-        }
-        
-        return null;
+        return this.clients.get(userName);
     }
     
     private void runServer()
@@ -63,7 +58,7 @@ public class Server
                     Server.ControllerServerClient newClient = new Server.ControllerServerClient(socket, this);
                 
                     // newClient is added to database of clients
-                    this.clients.add(newClient);
+                    this.clients.put(newClient.getTheModel().getUserName(), newClient);
 
                     // now client in server lives independently, when is called .start() method in newClient is called .run() method
                     newClient.thread.start();
@@ -108,10 +103,6 @@ public class Server
                 this.parent = parent;
                 // I use threads, because all users can communicate with each other independently
                 this.thread = new Thread(this); 
-
-                this.theModel.mates = new ArrayList<>();
-                this.theModel.invitesFromMe = new ArrayList<>();
-                this.theModel.invitesToMe = new ArrayList<>();
 
                 this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
                 
@@ -182,9 +173,11 @@ public class Server
                     
                     this.theModel.setLists(person);
                     
+                    parent.clients.remove(person.getTheModel().getUserName());
+                        
+                        
                     person.getTheView().getBufferedReader().close();
-                    
-                    parent.clients.remove(person);
+                    person.getTheModel().getPrintWriter().close(); // finally
                 }
                 else
                 {
@@ -211,7 +204,7 @@ public class Server
                 String msg = userNameAndMessage[1];
 
                 // here server is looking for a receiver
-                ControllerServerClient receiver = getTheModel().findPerson(userName, this.theModel.mates);
+                ControllerServerClient receiver = getTheModel().findPerson(userName);
                 if(receiver != null)
                 {
                     // send msg to proper person
@@ -248,8 +241,8 @@ public class Server
                 // give invite information to me 
                 this.getTheModel().giveInviteInformation(this.theModel.getPrintWriter(), Protocol.FROM_ME, "You invited " + receiver.getTheModel().getUserName() + " to mates!", receiver.getTheModel().getUserName());
 
-                receiver.getTheModel().invitesToMe.add(this);
-                this.theModel.invitesFromMe.add(receiver);
+                receiver.getTheModel().invitesToMe.put(this.theModel.getUserName(), this);
+                this.theModel.invitesFromMe.put(receiver.getTheModel().getUserName(), receiver);
             }
             else
                 this.getTheModel().returnInformationAboutExistance("This person doesn't exist.");
@@ -272,11 +265,11 @@ public class Server
                     // send information to me, becouse mate send to me invitation and I accept this invitation.
                     getTheModel().giveAddedInformation(this.theModel.getPrintWriter(), Protocol.TO_ME, Protocol.AGREE, mate.getTheModel().getUserName(), "You added " + mate.getTheModel().getUserName() + " to mates!");
                     // add mate to mates
-                    getTheModel().addMate(this.theModel.mates, mate);
+                    getTheModel().mates.put(mate.getTheModel().getUserName(), mate);
                     // send information to mate, flag is FROM_ME becouse he send information 
                     getTheModel().giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.AGREE, this.theModel.getUserName(), this.theModel.getUserName() + " add You to mates!");
                     // add me to mate's mates
-                    mate.getTheModel().addMate(mate.getTheModel().mates, this);
+                    mate.getTheModel().mates.put(this.theModel.getUserName(), this);
                 }
                 else
                 if(answer.getFlag() == Protocol.DISAGREE)
@@ -288,8 +281,8 @@ public class Server
                     getTheModel().giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.DISAGREE, this.theModel.getUserName(), this.theModel.getUserName() + " refuse your invitation.");
                 }
                 
-                mate.getTheModel().invitesFromMe.remove(this);
-                this.theModel.invitesToMe.remove(mate);
+                mate.getTheModel().invitesFromMe.remove(this.theModel.getUserName());
+                this.theModel.invitesToMe.remove(mate.getTheModel().getUserName());
             }
         }                 
                             
