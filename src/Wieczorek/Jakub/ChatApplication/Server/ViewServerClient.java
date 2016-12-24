@@ -49,14 +49,16 @@ public class ViewServerClient
     /**
      * @return the bufferedReader
      */
-    public BufferedReader getBufferedReader() {
+    public BufferedReader getBufferedReader() 
+    {
         return bufferedReader;
     }
 
     /**
      * @param bufferedReader the bufferedReader to set
      */
-    public void setBufferedReader(BufferedReader bufferedReader) {
+    public void setBufferedReader(BufferedReader bufferedReader) 
+    {
         this.bufferedReader = bufferedReader;
     }
 }

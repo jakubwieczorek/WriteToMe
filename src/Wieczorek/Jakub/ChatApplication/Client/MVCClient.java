@@ -4,6 +4,12 @@ public class MVCClient
 {
     public static void main(String [] args)
     {   
-        new Controller();
+        javax.swing.SwingUtilities.invokeLater
+        (
+            ()-> 
+            {
+                new Controller();
+            }
+        );
     }
 }

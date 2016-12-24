@@ -88,7 +88,6 @@ public class Server
          * @param socket is the same socket as in client who registered to server
          * @param userName is userls
          * Name of client, now he must send it by simple message. In future will be sent automatically. 
-         * @param mates is list of mates.
          * 
          * @see Wieczorek.Jakub.ChatApplication.ChatServer
          */
@@ -107,17 +106,11 @@ public class Server
                 this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
                 
                 // get userName and password from theView
-                try
-                {
-                    String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-                    
-                    this.theModel.setUserName(userNameAndPass[0]);
-                    this.theModel.setPassword(userNameAndPass[1]);
-                }
-                catch(IllegalArgumentException ex)
-                {
-                    System.out.println(ex.getMessage());
-                }
+                String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+
+                this.theModel.setUserName(userNameAndPass[0]);
+                this.theModel.setPassword(userNameAndPass[1]);
+                
                 
                 boolean newUser = true;
                 ControllerServerClient person;
@@ -145,21 +138,15 @@ public class Server
                     }
                     
                     this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
-                    try
-                    {
-                       String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-                       this.theModel.setUserName(userNameAndPass[0]);
-                       this.theModel.setPassword(userNameAndPass[1]);
-                    }
-                    catch(IllegalArgumentException ex)
-                    {
-                        System.out.println(ex.getMessage());
-                    }
+                    
+                    userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                    this.theModel.setUserName(userNameAndPass[0]);
+                    this.theModel.setPassword(userNameAndPass[1]);
                 }
                 
                 this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
                 
-                if(!newUser)
+                if(person != null && newUser != true)
                 {
                     if(person.getTheModel().isLogged())
                     {
@@ -172,21 +159,24 @@ public class Server
                     this.theModel.sendSocketInformationToMates(person);
                     
                     this.theModel.setLists(person);
-                    
-                    parent.clients.remove(person.getTheModel().getUserName());
+                      
+                    try
+                    {
+                        parent.clients.remove(person.getTheModel().getUserName());
                         
-                        
-                    person.getTheView().getBufferedReader().close();
-                    person.getTheModel().getPrintWriter().close(); // finally
+                        person.getTheView().getBufferedReader().close();
+                        person.getTheModel().getPrintWriter().close();
+                    }
+                    catch(IOException ex){} 
                 }
-                else
-                {
-                    this.theModel.setLogged(true);
-                }
+
+                this.theModel.setLogged(true);
             }
-            catch(IOException ex)
+            catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
                 System.err.println(ex.getMessage());
+                
+                throw new NullPointerException("Error during logging");
             }
         }
         

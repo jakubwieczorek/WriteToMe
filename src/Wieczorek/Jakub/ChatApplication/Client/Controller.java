@@ -9,9 +9,6 @@ public class Controller
     View theView;
     Model theModel;
     
-    /**
-     * Constructor
-     */
     public Controller()
     {
         this.theModel = new Model();
@@ -84,11 +81,7 @@ public class Controller
         theModel.client.sendMsg(new Message(Protocol.PERSON_INQUIRE, person));               
     }
     
-    /**
-    * Start the thread in thread instance in theView.
-    * To receive messages
-    */
-    public void startConversation()
+    private void startConversation()
     {        
         this.theView.receiverMessages.thread.start();
     }

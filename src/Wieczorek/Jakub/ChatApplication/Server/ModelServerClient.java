@@ -19,20 +19,12 @@ public class ModelServerClient
 
     ConcurrentHashMap<String, Server.ControllerServerClient>mates, invitesFromMe, invitesToMe;
     
-    public ModelServerClient(String userName, PrintWriter printWriter) 
+    public ModelServerClient(PrintWriter printWriter) 
     {
-        
         this.mates = new ConcurrentHashMap<>();
         this.invitesFromMe = new ConcurrentHashMap<>();
         this.invitesToMe = new ConcurrentHashMap<>();
         
-        this.userName = userName;
-        this.printWriter = printWriter;
-        this.logged = true;
-    }
-    
-    public ModelServerClient(PrintWriter printWriter) 
-    {
         this.printWriter = printWriter;
     }
     
@@ -43,10 +35,8 @@ public class ModelServerClient
             String userAndMsg [] = msg.split(":", 2);
             return userAndMsg;
         }
-        else
-        {
-            throw new IllegalArgumentException("Received message doesn't contains ':' character, so I can't find useruserName.");
-        }
+
+        throw new IllegalArgumentException("Received message doesn't contains ':' character, so I can't find useruserName.");
     }
 
     Server.ControllerServerClient findPerson(String userName)
@@ -79,13 +69,20 @@ public class ModelServerClient
 
     void sendInformationAboutExitToMates() 
     {
-        this.mates.entrySet().forEach
-        (
-            (mate) -> 
-            {
-                new Message(Protocol.EXIT, this.userName).send(mate.getValue().getTheModel().getPrintWriter());
-            }
-        );
+        try
+        {
+            this.mates.entrySet().forEach
+            (
+                (mate) -> 
+                {
+                    new Message(Protocol.EXIT, this.userName).send(mate.getValue().getTheModel().getPrintWriter());
+                }
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            System.err.println("sendInformationAboutExitToMates");
+        }
     }
 
     void giveAddedInformation(PrintWriter printWriter, char who, char flag, String userName, String msg) 
@@ -99,7 +96,7 @@ public class ModelServerClient
 
     void returnInformationAboutUserName(char flag, String msg) 
     {
-        new Message(flag, msg).send(getPrintWriter());
+        new Message(flag, msg).send(this.printWriter);
     }
 
     void initiateUsersData(Server.ControllerServerClient person) 
@@ -122,13 +119,20 @@ public class ModelServerClient
     
     private void sendDataLoop(char flag, ConcurrentHashMap<String, Server.ControllerServerClient>mates)
     {
-        mates.entrySet().forEach
-        (
-            (mate)-> 
-            {
-                new Message(flag, mate.getValue().getTheModel().getUserName()).send(this.printWriter);
-            }
-        );
+        try
+        {
+            mates.entrySet().forEach
+            (
+                (mate)-> 
+                {
+                    new Message(flag, mate.getValue().getTheModel().getUserName()).send(this.printWriter);
+                }
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            System.err.println("sendDataLoop");
+        }
     }
     
     /**
@@ -182,29 +186,50 @@ public class ModelServerClient
     
     void sendSocketInformationToMates(Server.ControllerServerClient myOldVersion) 
     {
-        myOldVersion.getTheModel().mates.entrySet().forEach
-        (
-            (mate)-> 
-            {
-                mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setSocket(this.socket);   
-            }
-        );
+        try
+        {
+            myOldVersion.getTheModel().mates.entrySet().forEach
+            (
+                (mate)-> 
+                {
+                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setSocket(this.socket);   
+                }
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            System.err.println("sendSocketInformationToMates + mates");
+        }
         
-        myOldVersion.getTheModel().invitesFromMe.entrySet().forEach
-        (
-            (mate)-> 
-            {
-                mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setSocket(this.socket);
-            }
-        );
+        try
+        {
+            myOldVersion.getTheModel().invitesFromMe.entrySet().forEach
+            (
+                (mate)-> 
+                {
+                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setSocket(this.socket);
+                }
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            System.err.println("sendSocketInformationToMates + ivitesFromMe");
+        }
         
-        myOldVersion.getTheModel().invitesToMe.entrySet().forEach
-        (
-            (mate)-> 
-            {
-                mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setSocket(this.socket);
-            }
-        );
+        try
+        {
+            myOldVersion.getTheModel().invitesToMe.entrySet().forEach
+            (
+                (mate)-> 
+                {
+                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setSocket(this.socket);
+                }
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            System.err.println("sendSocketInformationToMates + invitesToMe");
+        }
     }
     
     /**

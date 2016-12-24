@@ -49,6 +49,55 @@ public class View extends javax.swing.JFrame {
      */
     DefaultListModel model = new DefaultListModel();
     
+    private class Mate
+    {
+        private String userName;
+        private boolean isLogged;
+        
+        Mate(String userName)
+        {
+            this.userName = userName;
+        }
+
+        /**
+         * @return the userName
+         */
+        public String getUserName() 
+        {
+            return userName;
+        }
+
+        /**
+         * @param userName the userName to set
+         */
+        public void setUserName(String userName) 
+        {
+            this.userName = userName;
+        }
+
+        /**
+         * @return the isLogged
+         */
+        public boolean isIsLogged() 
+        {
+            return isLogged;
+        }
+
+        /**
+         * @param isLogged the isLogged to set
+         */
+        public void setIsLogged(boolean isLogged) 
+        {
+            this.isLogged = isLogged;
+        }
+        
+        @Override
+        public String toString()
+        {
+            return this.userName;
+        }
+    }
+    
     /**
      * Reference for controller who direct model and view. It is neccessary, becouse
      * if View didn't know about controller where this View would created, liseners for
@@ -168,10 +217,12 @@ public class View extends javax.swing.JFrame {
         (
             (event)->
             {
-                if(!textToSend.getText().equals(""))
-                    sendButton.setEnabled(true);
-                else
+                if(textToSend.getText().equals(""))
                     sendButton.setEnabled(false);
+                else
+                    sendButton.setEnabled(true);
+                
+                //this.listOfMates.getSelectedValue().toString();
             }
         );
         
@@ -552,16 +603,10 @@ public class View extends javax.swing.JFrame {
 
         private void directExit(Message matesUserName) 
         {
-            System.out.println(matesUserName.getText());
+            int index = model.indexOf(matesUserName.getText());
+            model.removeElement(matesUserName.getText());
             
-            for(int i = 0; i < model.getSize(); i++)
-            {
-                System.out.println(model.get(i));
-    
-                if(matesUserName.getText().equals(model.getElementAt(i)));
-                   //System.out.println(model.get(i).getClass().toString());
-                   //((Component)model.getElementAt(i)).setEnabled(false); 
-            }
+            model.add(index, matesUserName.getText() + "isn't logged");
         }
 
         private void directRemoveMate(Message msg) 
