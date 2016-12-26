@@ -2,6 +2,7 @@ package Wieczorek.Jakub.ChatApplication.Client;
 
 import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -11,9 +12,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -22,6 +23,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
 
 /**
  * @author jakub
@@ -47,7 +49,32 @@ public class View extends javax.swing.JFrame {
      * 
      * @see javax.swing.DefaultListModel
      */
-    DefaultListModel model = new DefaultListModel();
+    DefaultListModel<Mate>model = new DefaultListModel<>();
+    ConcurrentHashMap<String, Mate>modelMap = new ConcurrentHashMap();
+    
+    private class MyListCellRenderer extends DefaultListCellRenderer 
+    {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list,
+            Object value, int index, boolean isSelected, boolean cellHasFocus) 
+        {
+            Component superRenderer = super.getListCellRendererComponent(list, value, index, isSelected,
+                cellHasFocus);
+            
+            if(((Mate)value).isIsLogged()) 
+            {
+                System.out.println("Green");
+                this.setBackground(Color.GREEN);
+            }
+            else
+            {
+                System.out.println("Red");
+                this.setBackground(Color.RED);
+            }
+
+            return superRenderer;
+        }
+    }
     
     private class Mate
     {
@@ -119,18 +146,7 @@ public class View extends javax.swing.JFrame {
         initComponents();
         
         this.listOfMates.setModel(this.model);
-        
-        this.listOfMates.setCellRenderer
-        (
-            new DefaultListCellRenderer()
-            {
-                @Override
-                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) 
-                {
-                   return (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                }
-             }
-        );
+        this.listOfMates.setCellRenderer(new MyListCellRenderer());
         
         this.receiverMessages = new View.ReceiverMessages(inputStream);
         
@@ -217,12 +233,10 @@ public class View extends javax.swing.JFrame {
         (
             (event)->
             {
-                if(textToSend.getText().equals(""))
+                if(textToSend.getText().equals("") || ((Mate)this.listOfMates.getSelectedValue()).isLogged == false)
                     sendButton.setEnabled(false);
                 else
                     sendButton.setEnabled(true);
-                
-                //this.listOfMates.getSelectedValue().toString();
             }
         );
         
@@ -237,9 +251,12 @@ public class View extends javax.swing.JFrame {
                 (
                     (event)->
                     {
-                       model.removeElement(userName);
-                       
-                       controller.upgradeModelMateRemove(userName);
+                        for(Object mate : model.toArray())
+                        {
+                            if(((Mate)mate).getUserName().equals(userName))
+                                model.removeElement((Mate)mate);
+                        }
+                        controller.upgradeModelMateRemove(userName);
                     }
                 ); // with - python coś jak del.
                 
@@ -456,6 +473,10 @@ public class View extends javax.swing.JFrame {
                             
                             break;
                         }
+                        case Protocol.LOGGED:
+                        {
+                            this.directLogged(msg);
+                        }
                     }
                 }
                 catch(IOException ex)
@@ -556,7 +577,13 @@ public class View extends javax.swing.JFrame {
 
             if(agree.getFlag() == Protocol.AGREE)
             {
-                model.addElement(agree.getText());
+                Mate mate = new Mate(agree.getText());
+                
+                source.receive(this.bufferedReader);
+                
+                mate.setIsLogged(source.getFlag() == Protocol.LOGGED);
+                
+                model.addElement(mate);
             }
         }
 
@@ -566,7 +593,6 @@ public class View extends javax.swing.JFrame {
             
             Message section = new Message();
             
-            
             section.receive(this.bufferedReader);
             
             while(section.getFlag() != Protocol.INITIATE)
@@ -575,7 +601,15 @@ public class View extends javax.swing.JFrame {
                 {
                     case Protocol.MATE:
                     {
-                        model.addElement(section.getText());
+                        Mate mate = new Mate(section.getText());
+                        
+                        section.receive(this.bufferedReader);
+                        
+                        mate.setIsLogged(section.getFlag() == Protocol.LOGGED);
+                        
+                        System.out.println(section.getFlag());
+                        
+                        model.addElement(mate);
                         
                         break;
                     }
@@ -601,20 +635,40 @@ public class View extends javax.swing.JFrame {
             }
         }
 
+        private void directLogged(Message msg) 
+        {
+            System.out.println("Logged");
+            for(Object mate : model.toArray())
+            {
+                if(((Mate)mate).userName.equals(msg.getText()))
+                {
+                    ((Mate)mate).setIsLogged(true);
+                    System.out.println(((Mate)mate).isIsLogged());
+                }
+            }
+        }
+        
         private void directExit(Message matesUserName) 
         {
-            int index = model.indexOf(matesUserName.getText());
-            model.removeElement(matesUserName.getText());
+            System.out.println("Exit");
             
-            model.add(index, matesUserName.getText() + "isn't logged");
+            for(Object mate : model.toArray())
+            {
+                if(((Mate)mate).userName.equals(matesUserName.getText()))
+                    ((Mate)mate).setIsLogged(false);
+            }
         }
 
         private void directRemoveMate(Message msg) 
         {
             historyOfConversation.append(msg.getText() + " remove you from mates." + "\n");
-                            
-            model.removeElement(msg.getText());
-        }
+                           
+            for(Object mate : model.toArray())
+            {
+                if(((Mate)mate).userName.equals(msg.getText()))
+                    model.removeElement((Mate)mate);
+            }
+        } 
     }
     
     String getUserName(String msg)

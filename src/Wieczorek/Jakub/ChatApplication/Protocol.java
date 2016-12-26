@@ -85,4 +85,14 @@ public class Protocol
     * Flag which indicate that user is logged in different device.
     */
     public static final char REMOVE_MATE = 'f';
+    
+    /**
+    * Flag which indicate that user is logged.
+    */
+    public static final char LOGGED = 'g';
+    
+        /**
+    * Flag which indicate that user isn't logged.
+    */
+    public static final char UNLOGGED = 'h';
 }

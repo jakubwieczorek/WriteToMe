@@ -1,10 +1,13 @@
 package Wieczorek.Jakub.ChatApplication.Client;
 
 import Wieczorek.Jakub.ChatApplication.Message;
+import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Logic part of MVC patern for user.
@@ -69,6 +72,23 @@ public class Model
          */
         PrintWriter printWriter;
         
+        public void startSendingConnection()
+        {
+            Timer timer = new Timer();
+            
+            timer.scheduleAtFixedRate
+            (
+                new TimerTask() 
+                {
+                    @Override
+                    public void run() 
+                    {
+                        client.sendMsg(new Message(Protocol.LOGGED, ""));
+                    }
+                }
+            , 1000, 1000);
+        }
+            
         /**
          * Constructor.
          * 

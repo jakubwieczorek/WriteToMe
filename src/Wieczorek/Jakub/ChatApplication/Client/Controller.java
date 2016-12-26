@@ -84,6 +84,8 @@ public class Controller
     private void startConversation()
     {        
         this.theView.receiverMessages.thread.start();
+        
+        this.theModel.client.startSendingConnection();
     }
 
     void upgradeModelMateAnswer(String person, char flag) 

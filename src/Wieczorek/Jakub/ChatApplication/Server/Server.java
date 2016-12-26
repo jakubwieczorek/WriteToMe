@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * @author jakub
@@ -81,12 +83,13 @@ public class Server
         private ModelServerClient theModel;
         Server parent;
         Thread thread;
+        private TimerTaskImpl timerTask;
 
         /**
          * Constructor to the NewClient class. 
          * 
          * @param socket is the same socket as in client who registered to server
-         * @param userName is userls
+         * @param userName is users
          * Name of client, now he must send it by simple message. In future will be sent automatically. 
          * 
          * @see Wieczorek.Jakub.ChatApplication.ChatServer
@@ -99,6 +102,12 @@ public class Server
                 this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
                 
                 this.theModel.setSocket(socket);
+                this.theModel.setParent(this);
+                            
+                this.theModel.setLogged(true);  
+                
+                this.timerTask = new TimerTaskImpl();
+                
                 this.parent = parent;
                 // I use threads, because all users can communicate with each other independently
                 this.thread = new Thread(this); 
@@ -151,26 +160,25 @@ public class Server
                     if(person.getTheModel().isLogged())
                     {
                         person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
-                    }
+                    } 
                     
-                    this.theModel.initiateUsersData(person);
+                    person.getTheModel().setLogged(true);
+                    
+                    person.getTheModel().setSocket(socket);
+                    
+                    person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
+                    
+                    person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
+                    
                     // also in all mates list of mates now is neccessary to switch me and meoldversion
+                    person.getTheModel().sendSocketInformationToMates();
                     
-                    this.theModel.sendSocketInformationToMates(person);
+                    person.getTheModel().initiateUsersData();
                     
-                    this.theModel.setLists(person);
-                      
-                    try
-                    {
-                        parent.clients.remove(person.getTheModel().getUserName());
-                        
-                        person.getTheView().getBufferedReader().close();
-                        person.getTheModel().getPrintWriter().close();
-                    }
-                    catch(IOException ex){} 
+                    person.getTimerTask().setSignalSended(false);
+                    
+                    throw new NullPointerException("Same user");
                 }
-
-                this.theModel.setLogged(true);
             }
             catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
@@ -251,13 +259,24 @@ public class Server
 
                 if(answer.getFlag() == Protocol.AGREE)
                 {   
-                    //System.out.println("ANSWER + AGREE");
-                    // send information to me, becouse mate send to me invitation and I accept this invitation.
+                    // send information to me, because mate send to me invitation and I accept this invitation.
                     getTheModel().giveAddedInformation(this.theModel.getPrintWriter(), Protocol.TO_ME, Protocol.AGREE, mate.getTheModel().getUserName(), "You added " + mate.getTheModel().getUserName() + " to mates!");
+
+                    if(mate.getTheModel().isLogged() == true)
+                        getTheModel().sendMessage(Protocol.LOGGED, "");
+                    else
+                        getTheModel().sendMessage(Protocol.UNLOGGED, "");
+                    
                     // add mate to mates
                     getTheModel().mates.put(mate.getTheModel().getUserName(), mate);
-                    // send information to mate, flag is FROM_ME becouse he send information 
+                    // send information to mate, flag is FROM_ME because he send information 
                     getTheModel().giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.AGREE, this.theModel.getUserName(), this.theModel.getUserName() + " add You to mates!");
+                    
+                    if(this.getTheModel().isLogged() == true)
+                        mate.getTheModel().sendMessage(Protocol.LOGGED, "");
+                    else
+                        mate.getTheModel().sendMessage(Protocol.UNLOGGED, "");
+                    
                     // add me to mate's mates
                     mate.getTheModel().mates.put(this.theModel.getUserName(), this);
                 }
@@ -279,8 +298,12 @@ public class Server
         @Override
         public void run()
         {   
+            Timer timer = new Timer();
+
+            timer.scheduleAtFixedRate(getTimerTask(), 5000, 5000);
+            
             try
-            {           
+            {   
                 while(true)
                 {
                     Message messageFromMe = this.getTheView().getMessage();
@@ -308,13 +331,18 @@ public class Server
                         case Protocol.EXIT:
                         {
                             getTheModel().setLogged(false);
-                            getTheModel().sendInformationAboutExitToMates();
                             
                             break;
                         }
                         case Protocol.REMOVE_MATE:
                         {
                             this.directRemoveMate(messageFromMe);
+                            
+                            break;
+                        }
+                        case Protocol.LOGGED:
+                        {
+                            this.directLogged();
                             
                             break;
                         }
@@ -360,6 +388,56 @@ public class Server
         private void directRemoveMate(Message messageFromMe) 
         {
             this.theModel.giveRemoveInformationToMates(messageFromMe.getText());
+        }
+
+        private void directLogged() 
+        {
+            this.theModel.increaseSignalLogged();
+        }
+
+        public class TimerTaskImpl extends TimerTask 
+        {
+            public TimerTaskImpl() 
+            {
+                oldValue = theModel.getLoggedSignalNuber();
+                signalSended = false;
+            }
+            
+            int oldValue;
+            private boolean signalSended;
+
+            @Override
+            public void run()
+            {
+                if(oldValue - theModel.getLoggedSignalNuber() == 0 && signalSended == false)
+                {
+                    setSignalSended(true);
+                    
+                    theModel.setLogged(false);
+                    
+                    theModel.sendInformationAboutExitToMates();
+                    
+                    System.out.println(theModel.getUserName() + " Logged out");
+                }
+                
+                oldValue = theModel.getLoggedSignalNuber();
+            }
+
+            /**
+             * @param signalSended the signalSended to set
+             */
+            public void setSignalSended(boolean signalSended) 
+            {
+                this.signalSended = signalSended;
+            }
+        }
+
+        /**
+         * @return the timerTask
+         */
+        public TimerTaskImpl getTimerTask() 
+        {
+            return this.timerTask;
         }
     }
 }

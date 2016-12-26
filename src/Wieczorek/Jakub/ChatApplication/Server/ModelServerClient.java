@@ -16,8 +16,16 @@ public class ModelServerClient
     private PrintWriter printWriter;
     private boolean logged;
     private Socket socket;
-
+    private int loggedSignalNumber;
+    private Server.ControllerServerClient parent;
+    
     ConcurrentHashMap<String, Server.ControllerServerClient>mates, invitesFromMe, invitesToMe;
+    
+    
+    void resetLoggedSignalNumber()
+    {
+        this.loggedSignalNumber = 0;
+    }
     
     public ModelServerClient(PrintWriter printWriter) 
     {
@@ -93,26 +101,47 @@ public class ModelServerClient
         
         new Message(flag, userName).send(printWriter);
     }
-
+    
     void returnInformationAboutUserName(char flag, String msg) 
     {
         new Message(flag, msg).send(this.printWriter);
     }
 
-    void initiateUsersData(Server.ControllerServerClient person) 
+    void initiateUsersData() 
     {
         new Message(Protocol.INITIATE, "").send(this.printWriter);
         
-        // send mates username
-        this.sendDataLoop(Protocol.MATE, person.getTheModel().mates);
+        try
+        {
+            mates.entrySet().forEach
+            (
+                (mate)-> 
+                {
+                    new Message(Protocol.MATE, mate.getValue().getTheModel().getUserName()).send(this.printWriter);
+                    
+                    if(mate.getValue().getTheModel().isLogged() == true)
+                    {
+                        new Message(Protocol.LOGGED, "").send(this.printWriter);
+                    }
+                    else
+                    {
+                        new Message(Protocol.UNLOGGED, "").send(this.printWriter);
+                    }
+                }
+            );
+        }
+        catch(NullPointerException ex)
+        {
+            System.err.println("sendDataLoop");
+        }
         
         new Message(Protocol.PERSON_INVITATION, "").send(this.printWriter);
         
         // send invities for me username
-        this.sendDataLoop(Protocol.TO_ME, person.getTheModel().invitesToMe);
+        this.sendDataLoop(Protocol.TO_ME, invitesToMe);
         
         // send invities from me username
-        this.sendDataLoop(Protocol.FROM_ME, person.getTheModel().invitesFromMe);
+        this.sendDataLoop(Protocol.FROM_ME, invitesFromMe);
         
         new Message(Protocol.INITIATE, "Initiation complete.").send(this.printWriter);
     }
@@ -173,7 +202,8 @@ public class ModelServerClient
     /**
      * @param socket the socket to set
      */
-    public void setSocket(Socket socket) {
+    public void setSocket(Socket socket) 
+    {
         this.socket = socket;
     }
 
@@ -184,17 +214,25 @@ public class ModelServerClient
         this.invitesToMe = person.getTheModel().invitesToMe;
     }
     
-    void sendSocketInformationToMates(Server.ControllerServerClient myOldVersion) 
+    void sendSocketInformationToMates() 
     {
         try
         {
-            myOldVersion.getTheModel().mates.entrySet().forEach
+            mates.entrySet().forEach
             (
                 (mate)-> 
                 {
-                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setSocket(this.socket);   
+                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setSocket(this.socket); 
+                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setPrintWriter(this.printWriter);
+                    mate.getValue().getTheModel().mates.get(this.userName).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
+                    
+                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setLogged(true);
+                    
+                    new Message(Protocol.LOGGED, this.userName).send(mate.getValue().getTheModel().getPrintWriter());
                 }
             );
+            
+            System.out.println("Sended");
         }
         catch(NullPointerException ex)
         {
@@ -203,11 +241,13 @@ public class ModelServerClient
         
         try
         {
-            myOldVersion.getTheModel().invitesFromMe.entrySet().forEach
+            invitesFromMe.entrySet().forEach
             (
                 (mate)-> 
                 {
-                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setSocket(this.socket);
+                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setSocket(this.socket);
+                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setPrintWriter(this.printWriter);
+                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
                 }
             );
         }
@@ -218,11 +258,13 @@ public class ModelServerClient
         
         try
         {
-            myOldVersion.getTheModel().invitesToMe.entrySet().forEach
+            invitesToMe.entrySet().forEach
             (
                 (mate)-> 
                 {
-                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setSocket(this.socket);
+                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setSocket(this.socket);
+                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setPrintWriter(this.printWriter);
+                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
                 }
             );
         }
@@ -253,5 +295,34 @@ public class ModelServerClient
         new Message(Protocol.REMOVE_MATE, this.userName).send(this.mates.get(mateToRemove).getTheModel().getPrintWriter());
 
         this.mates.remove(this.mates.get(mateToRemove).getTheModel().getUserName());
+    }
+    
+    int getLoggedSignalNuber()
+    {
+        return this.loggedSignalNumber;
+    }
+    
+    void increaseSignalLogged() 
+    {
+        this.loggedSignalNumber++;
+    }
+
+    void sendMessage(char flag, String string) 
+    {
+        new Message(flag, string).send(this.printWriter);
+    }
+
+    /**
+     * @return the parent
+     */
+    public Server.ControllerServerClient getParent() {
+        return parent;
+    }
+
+    /**
+     * @param parent the parent to set
+     */
+    public void setParent(Server.ControllerServerClient parent) {
+        this.parent = parent;
     }
 }

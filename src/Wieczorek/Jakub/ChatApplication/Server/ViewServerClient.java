@@ -35,7 +35,6 @@ public class ViewServerClient
         Message msg = new Message();
         
         msg.receive(this.getBufferedReader());
-
         
         return msg;
     }
