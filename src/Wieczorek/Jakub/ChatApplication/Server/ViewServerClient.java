@@ -1,10 +1,8 @@
 package Wieczorek.Jakub.ChatApplication.Server;
 
 import Wieczorek.Jakub.ChatApplication.Message;
-import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
  * @author jakub
@@ -37,12 +35,6 @@ public class ViewServerClient
         msg.receive(this.getBufferedReader());
         
         return msg;
-    }
-
-    void sendMessage(String fromWho, PrintWriter printWriter, String msg) 
-    {
-        // from who and contents
-        new Message(Protocol.MESSAGE, fromWho + " wrote:" + msg).send(printWriter);
     }
 
     /**

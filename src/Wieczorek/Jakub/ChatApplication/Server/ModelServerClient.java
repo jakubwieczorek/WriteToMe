@@ -67,12 +67,12 @@ public class ModelServerClient
         new Message(Protocol.PERSON_INQUIRE, msg).send(this.getPrintWriter());
     }
 
-    void giveInviteInformation(PrintWriter printWriter, char flag, String msg, String msgTwo) 
+    void giveInviteInformation(char flag, String msg, String msgTwo) 
     {   
         // message type invitation
-        new Message(Protocol.PERSON_INVITATION, msg).send(printWriter);
+        new Message(Protocol.PERSON_INVITATION, msg).send(this.printWriter);
         
-        new Message(flag, msgTwo).send(printWriter);
+        new Message(flag, msgTwo).send(this.printWriter);
     }
 
     void sendInformationAboutExitToMates() 
@@ -93,13 +93,13 @@ public class ModelServerClient
         }
     }
 
-    void giveAddedInformation(PrintWriter printWriter, char who, char flag, String userName, String msg) 
+    void giveAddedInformation(char who, char flag, String userName, String msg) 
     {
-        new Message(Protocol.ANSWER, "").send(printWriter);
+        new Message(Protocol.ANSWER, "").send(this.printWriter);
         
-        new Message(who, msg).send(printWriter);
+        new Message(who, msg).send(this.printWriter);
         
-        new Message(flag, userName).send(printWriter);
+        new Message(flag, userName).send(this.printWriter);
     }
     
     void returnInformationAboutUserName(char flag, String msg) 
@@ -167,35 +167,40 @@ public class ModelServerClient
     /**
      * @return the password
      */
-    public String getPassword() {
+    public String getPassword() 
+    {
         return password;
     }
 
     /**
      * @param password the password to set
      */
-    public void setPassword(String password) {
+    public void setPassword(String password) 
+    {
         this.password = password;
     }
 
     /**
      * @return the printWriter
      */
-    public PrintWriter getPrintWriter() {
+    public PrintWriter getPrintWriter() 
+    {
         return printWriter;
     }
 
     /**
      * @param printWriter the printWriter to set
      */
-    public void setPrintWriter(PrintWriter printWriter) {
+    public void setPrintWriter(PrintWriter printWriter) 
+    {
         this.printWriter = printWriter;
     }
 
     /**
      * @return the socket
      */
-    public Socket getSocket() {
+    public Socket getSocket() 
+    {
         return socket;
     }
 
@@ -315,14 +320,16 @@ public class ModelServerClient
     /**
      * @return the parent
      */
-    public Server.ControllerServerClient getParent() {
+    public Server.ControllerServerClient getParent() 
+    {
         return parent;
     }
 
     /**
      * @param parent the parent to set
      */
-    public void setParent(Server.ControllerServerClient parent) {
+    public void setParent(Server.ControllerServerClient parent) 
+    {
         this.parent = parent;
     }
 }

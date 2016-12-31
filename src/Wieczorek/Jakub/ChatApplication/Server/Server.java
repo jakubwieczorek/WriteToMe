@@ -36,7 +36,7 @@ public class Server
         this.runServer();
     }
     
-    public ControllerServerClient findPerson(String userName)
+    synchronized public ControllerServerClient findPerson(String userName)
     {
         return this.clients.get(userName);
     }
@@ -106,7 +106,6 @@ public class Server
                             
                 this.theModel.setLogged(true);  
                 
-                this.timerTask = new TimerTaskImpl();
                 
                 this.parent = parent;
                 // I use threads, because all users can communicate with each other independently
@@ -206,9 +205,7 @@ public class Server
                 if(receiver != null)
                 {
                     // send msg to proper person
-                    getTheView().sendMessage(this.theModel.getUserName(),
-                            new PrintWriter(receiver.getTheModel().getSocket().getOutputStream(), true),
-                                msg);
+                    receiver.getTheModel().sendMessage(Protocol.MESSAGE, this.theModel.getUserName() + " wrote: " + msg);
                 } 
             }
             catch(IllegalArgumentException ex)
@@ -225,19 +222,16 @@ public class Server
                 return;
             }
                 
-            
             // find mate
             ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
                 
             if(receiver != null)
             {
-                PrintWriter matePrintWriter = new PrintWriter(receiver.getTheModel().getSocket().getOutputStream(), true);
-
                 // give invite information to mate
-                this.getTheModel().giveInviteInformation(matePrintWriter, Protocol.TO_ME, this.theModel.getUserName() + " invited You to mates!", this.theModel.getUserName());
+                receiver.getTheModel().giveInviteInformation(Protocol.TO_ME, this.theModel.getUserName() + " invited You to mates!", this.theModel.getUserName());
                
                 // give invite information to me 
-                this.getTheModel().giveInviteInformation(this.theModel.getPrintWriter(), Protocol.FROM_ME, "You invited " + receiver.getTheModel().getUserName() + " to mates!", receiver.getTheModel().getUserName());
+                this.getTheModel().giveInviteInformation(Protocol.FROM_ME, "You invited " + receiver.getTheModel().getUserName() + " to mates!", receiver.getTheModel().getUserName());
 
                 receiver.getTheModel().invitesToMe.put(this.theModel.getUserName(), this);
                 this.theModel.invitesFromMe.put(receiver.getTheModel().getUserName(), receiver);
@@ -255,12 +249,10 @@ public class Server
 
             if(mate != null)
             {
-                PrintWriter matePrintWriter = new PrintWriter(mate.theModel.getSocket().getOutputStream(), true);
-
                 if(answer.getFlag() == Protocol.AGREE)
                 {   
                     // send information to me, because mate send to me invitation and I accept this invitation.
-                    getTheModel().giveAddedInformation(this.theModel.getPrintWriter(), Protocol.TO_ME, Protocol.AGREE, mate.getTheModel().getUserName(), "You added " + mate.getTheModel().getUserName() + " to mates!");
+                    this.getTheModel().giveAddedInformation(Protocol.TO_ME, Protocol.AGREE, mate.getTheModel().getUserName(), "You added " + mate.getTheModel().getUserName() + " to mates!");
 
                     if(mate.getTheModel().isLogged() == true)
                         getTheModel().sendMessage(Protocol.LOGGED, "");
@@ -270,7 +262,7 @@ public class Server
                     // add mate to mates
                     getTheModel().mates.put(mate.getTheModel().getUserName(), mate);
                     // send information to mate, flag is FROM_ME because he send information 
-                    getTheModel().giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.AGREE, this.theModel.getUserName(), this.theModel.getUserName() + " add You to mates!");
+                    mate.getTheModel().giveAddedInformation(Protocol.FROM_ME, Protocol.AGREE, this.theModel.getUserName(), this.theModel.getUserName() + " add You to mates!");
                     
                     if(this.getTheModel().isLogged() == true)
                         mate.getTheModel().sendMessage(Protocol.LOGGED, "");
@@ -285,9 +277,9 @@ public class Server
                 {
                     System.out.println("ANSWER + DISAGREE");
                     // send information TO_ME. I received information and I refuse it.
-                    getTheModel().giveAddedInformation(this.theModel.getPrintWriter(), Protocol.TO_ME, Protocol.DISAGREE, mate.getTheModel().getUserName(), "You refused " + mate.getTheModel().getUserName() + " invitation.");
+                    this.getTheModel().giveAddedInformation(Protocol.TO_ME, Protocol.DISAGREE, mate.getTheModel().getUserName(), "You refused " + mate.getTheModel().getUserName() + " invitation.");
 
-                    getTheModel().giveAddedInformation(matePrintWriter, Protocol.FROM_ME, Protocol.DISAGREE, this.theModel.getUserName(), this.theModel.getUserName() + " refuse your invitation.");
+                    mate.getTheModel().giveAddedInformation(Protocol.FROM_ME, Protocol.DISAGREE, this.theModel.getUserName(), this.theModel.getUserName() + " refuse your invitation.");
                 }
                 
                 mate.getTheModel().invitesFromMe.remove(this.theModel.getUserName());
@@ -416,8 +408,6 @@ public class Server
                     theModel.setLogged(false);
                     
                     theModel.sendInformationAboutExitToMates();
-                    
-                    System.out.println(theModel.getUserName() + " Logged out");
                 }
                 
                 oldValue = theModel.getLoggedSignalNuber();

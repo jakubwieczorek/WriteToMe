@@ -23,7 +23,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
 
 /**
  * @author jakub
@@ -637,7 +636,6 @@ public class View extends javax.swing.JFrame {
 
         private void directLogged(Message msg) 
         {
-            System.out.println("Logged");
             for(Object mate : model.toArray())
             {
                 if(((Mate)mate).userName.equals(msg.getText()))
@@ -646,6 +644,9 @@ public class View extends javax.swing.JFrame {
                     System.out.println(((Mate)mate).isIsLogged());
                 }
             }
+            
+            listOfMates.repaint();
+            listOfMates.revalidate();
         }
         
         private void directExit(Message matesUserName) 
