@@ -4,12 +4,24 @@ import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.IOException;
 
+/**
+ * @author Jakub Wieczorek
+ * 
+ * @version 1.1
+ * 
+ * Controller part of MVC pattern for user.
+ */
 public class Controller 
 {
-    View theView;
-    Model theModel;
+    private View theView;
+    private Model theModel;
     
-    public Controller()
+    
+    /**
+     * Default constructor. During creation instance of this class controller is communicating with
+     * server in order to get username and password.
+     */
+    Controller()
     {
         this.theModel = new Model();
         
@@ -18,7 +30,7 @@ public class Controller
                 
         try
         {
-            this.theView = new View(theModel.client.getInputStream(), this);        
+            this.theView = new View(theModel.getInputStream(), this);        
             this.theView.setVisible(true);
             
             String msgToDialog = "Input your username:";
@@ -47,7 +59,7 @@ public class Controller
                     }
                 }
 
-                this.theModel.client.setUserName(userName, password);
+                this.theModel.setUserNameAndPassword(userName, password);
                 
                 Message returnInfo = new Message();
                 returnInfo.receive(this.theView.getBufferedReaeder());
@@ -71,37 +83,70 @@ public class Controller
         this.startConversation();
     }
     
+    /**
+     * Method is invoking from view level after for example clicking a button. Then model is updated
+     * by the newest message and immidiately sends message to server.
+     * 
+     * @param msg is contents of the msg.
+     * @param toWho is person who gets message.
+     */
     void upgradeModelMsg(String msg, String toWho)
     {
-        theModel.client.sendMsg(new Message(Protocol.MESSAGE, toWho + ":" + msg));              
+        this.theModel.sendMsg(new Message(Protocol.MESSAGE, toWho + ":" + msg));              
     }
     
+    /**
+     * Method is invoking from view level after for example clicking a button. Then model is updated
+     * by the newest person inquiry.
+     * 
+     * @param person is username of seeking person.
+     */
     void upgradeModelMateInquire(String person)
     {
-        theModel.client.sendMsg(new Message(Protocol.PERSON_INQUIRE, person));               
+        this.theModel.sendMsg(new Message(Protocol.PERSON_INQUIRE, person));               
     }
     
     private void startConversation()
     {        
         this.theView.receiverMessages.thread.start();
         
-        this.theModel.client.startSendingConnection();
+        this.theModel.startSendingConnection();
+        
+        this.theView.receiverMessages.startReceivingSignals();
     }
 
+    /**
+     * Method is invoking from view level after for example clicking a button. 
+     * This is answer for invitation.
+     * 
+     * @param person is person who should receive answer.
+     * @param flag is proper flag from Protocol class.
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.Protocol
+     */
     void upgradeModelMateAnswer(String person, char flag) 
     {
-        theModel.client.sendMsg(new Message(Protocol.ANSWER, ""));
+        theModel.sendMsg(new Message(Protocol.ANSWER, ""));
 
-        theModel.client.sendMsg(new Message(flag, person));              
+        theModel.sendMsg(new Message(flag, person));              
     }
 
+    /**
+     * Method sends signal to server when user exit program. 
+     */
     void upgradeModelExitMsg()
     {
-        this.theModel.client.sendMsg(new Message(Protocol.EXIT, ""));
+        this.theModel.sendMsg(new Message(Protocol.EXIT, ""));
     }
 
+    /**
+     * Method is invoking from view level after for example clicking button, when user wants
+     * remove any mate.
+     * 
+     * @param userName is mates userName who will be removed.
+     */
     void upgradeModelMateRemove(String userName) 
     {
-        this.theModel.client.sendMsg(new Message(Protocol.REMOVE_MATE, userName));
+        this.theModel.sendMsg(new Message(Protocol.REMOVE_MATE, userName));
     }
 }

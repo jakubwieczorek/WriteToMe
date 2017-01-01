@@ -2,9 +2,7 @@ package Wieczorek.Jakub.ChatApplication;
 
 /**
  * Class created in order to systematize data transfering between programs.
- * Before each message program's sending determined flag. Then program
- * who should receive message, before that message gets proper flag. So question about
- * mate, simple message has unique flag.
+ * Before each message program's sending determined flag.
  * 
  * @author Jakub Wieczorek
  * @version 1.1
@@ -22,12 +20,12 @@ public class Protocol
     public static final char PERSON_EXIST = '1';
     
     /**
-     * Flag, which indicated that person exist.
+     * Flag, which indicated that after is querry about person.
      */
     public static final char PERSON_INQUIRE = '3';
 
     /**
-     * Flag, which indicated that person don't exist.
+     * Flag, which indicated that person don't exist or user input proper pass.
      */
     public static final char PERSON_DONT_EXIST = '0';
     
@@ -37,12 +35,12 @@ public class Protocol
     public static final char EXIT = '4';
     
     /**
-     * Flag which indicate that agreed to add following person to mates.
+     * Flag which indicate agreement to add following person to mates.
      */
     public static final char AGREE = '5';
     
     /**
-    * Flag which indicate that user disagree to add following person to mates.
+    * Flag which indicate disagreement to add following person to mates.
     */
     public static final char DISAGREE = '6';
     
@@ -52,27 +50,27 @@ public class Protocol
     public static final char ANSWER = '7';
     
     /**
-    * Flag which indicate that after this flag is person who invie.
+    * Flag which indicate that after this flag is person who invite.
     */
     public static final char PERSON_INVITATION = '8';
     
     /**
-    * Flag which indicate that after this flag is person who invie.
+    * Flag which indicate that after this flag is my username.
     */
     public static final char FROM_ME = 'a';
     
     /**
-    * Flag which indicate that after this flag is person who invie.
+    * Flag which indicate that after this flag is person username who want for example add me to mates.
     */
     public static final char TO_ME = 'b';
     
     /**
-    * Flag which indicate that after this flag is person who invie.
+    * Flag which indicate that after this flag is initiation or end of initiation.
     */
     public static final char INITIATE = 'c';
     
     /**
-    * Flag which indicate that after this flag is person who invie.
+    * Flag which indicate that after this flag is mate.
     */
     public static final char MATE = 'd';
       
@@ -82,7 +80,7 @@ public class Protocol
     public static final char LOGGED_IN_DIFFERENT_DEVICE = 'e';
     
     /**
-    * Flag which indicate that user is logged in different device.
+    * Flag which indicate thate after this flag username who for example want to remove me from mates.
     */
     public static final char REMOVE_MATE = 'f';
     
@@ -91,8 +89,14 @@ public class Protocol
     */
     public static final char LOGGED = 'g';
     
-        /**
+    /**
     * Flag which indicate that user isn't logged.
     */
     public static final char UNLOGGED = 'h';
+    
+    /**
+    * Flag which indicate server's just broken down.
+    */
+    public static final char SERVER_WORKS = 'i';
+    
 }

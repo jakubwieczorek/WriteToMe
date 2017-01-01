@@ -4,10 +4,16 @@ import Wieczorek.Jakub.ChatApplication.Message;
 import Wieczorek.Jakub.ChatApplication.Protocol;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author jakub
+ * Model part of MVC pattern for server.
+ * 
+ * @author Jakub Wieczorek
+ * 
+ * @version 1.1
  */
 public class ModelServerClient 
 {
@@ -21,12 +27,19 @@ public class ModelServerClient
     
     ConcurrentHashMap<String, Server.ControllerServerClient>mates, invitesFromMe, invitesToMe;
     
-    
-    void resetLoggedSignalNumber()
+    /**
+     * sets loggedSignalNumber to 0.
+     */
+    public void resetLoggedSignalNumber()
     {
         this.loggedSignalNumber = 0;
     }
     
+    /**
+     * Constructor
+     * 
+     * @param printWriter is printWriter from users socket.
+     */
     public ModelServerClient(PrintWriter printWriter) 
     {
         this.mates = new ConcurrentHashMap<>();
@@ -36,7 +49,14 @@ public class ModelServerClient
         this.printWriter = printWriter;
     }
     
-    String [] splitUserNameAndMessage(String msg) throws IllegalArgumentException
+    /**
+     * Splits msg for two Strings: before : character and after.
+     * 
+     * @param msg is String which should contains : character.
+     * @return Two elements Strings array. 
+     * @throws IllegalArgumentException when : character doesn't occur.
+     */
+    public String [] splitUserNameAndMessage(String msg) throws IllegalArgumentException
     {
         if(msg.contains(":"))
         {
@@ -47,27 +67,54 @@ public class ModelServerClient
         throw new IllegalArgumentException("Received message doesn't contains ':' character, so I can't find useruserName.");
     }
 
-    Server.ControllerServerClient findPerson(String userName)
+    /**
+     * @return mate who has gotten userName.
+     * 
+     * @param userName is userName of seeking mate.
+     */
+    public Server.ControllerServerClient findPerson(String userName)
     {
         return this.mates.get(userName);
     }
-
+    
+    /**
+     * Setter for userName
+     * 
+     * @param userName is users username.
+     */
     public void setUserName(String userName)
     {
         this.userName = userName;
     }
-
+    
+    /**
+     * @return userName
+     */
     public String getUserName()
     {
         return this.userName;
     }
 
-    void returnInformationAboutExistance(String msg) 
+    /**
+     * Send information about existance to this user.
+     * 
+     * @param msg is message which will be sent to this user.
+     */
+    public void returnInformationAboutExistance(String msg) 
     {   
         new Message(Protocol.PERSON_INQUIRE, msg).send(this.getPrintWriter());
     }
 
-    void giveInviteInformation(char flag, String msg, String msgTwo) 
+    /**
+     * Returns information to this user about invitation both to me and from me.
+     * 
+     * @param msg is message which will be sent to this user for example user who answered for invitation
+     * @param msgTwo is second message.
+     * @param flag is flag from Protocol.
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.Protocol
+     */
+    public void giveInviteInformation(char flag, String msg, String msgTwo) 
     {   
         // message type invitation
         new Message(Protocol.PERSON_INVITATION, msg).send(this.printWriter);
@@ -75,7 +122,10 @@ public class ModelServerClient
         new Message(flag, msgTwo).send(this.printWriter);
     }
 
-    void sendInformationAboutExitToMates() 
+    /**
+     * sends information about lost connection to mates.
+     */
+    public void sendInformationAboutExitToMates() 
     {
         try
         {
@@ -83,7 +133,7 @@ public class ModelServerClient
             (
                 (mate) -> 
                 {
-                    new Message(Protocol.EXIT, this.userName).send(mate.getValue().getTheModel().getPrintWriter());
+                    new Message(Protocol.EXIT, this.getUserName()).send(mate.getValue().getTheModel().getPrintWriter());
                 }
             );
         }
@@ -93,7 +143,50 @@ public class ModelServerClient
         }
     }
 
-    void giveAddedInformation(char who, char flag, String userName, String msg) 
+    /**
+     * Model per each second sends information about connection in order to inform server
+     * whether user has internet connection or computer breaks down etc.
+     */
+    public void startSendingConnection()
+    {
+        Timer timer = new Timer();
+
+        timer.scheduleAtFixedRate
+        (
+            new TimerTask() 
+            {
+                @Override
+                public void run() 
+                {
+                    sendMessage(Protocol.SERVER_WORKS, "");
+                }
+            }
+        , 1000, 1000);
+    }
+    
+    /**
+     * Sends message to me.
+     * @param msg is second message.
+     * @param flag is flag from Protocol.
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.Protocol
+     */
+    void sendMessage(char flag, String string) 
+    {
+        new Message(flag, string).send(this.printWriter);
+    }
+    
+    /**
+     * Returns information to this user about answer on invitation.
+     * 
+     * @param userName is userName who accepted or refused invitation.
+     * @param msg is message.
+     * @param flag is flag from Protocol.
+     * @param who is flag from Protocol TO_ME or FROM_ME
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.Protocol
+     */
+    public void giveAddedInformation(char who, char flag, String userName, String msg) 
     {
         new Message(Protocol.ANSWER, "").send(this.printWriter);
         
@@ -102,12 +195,24 @@ public class ModelServerClient
         new Message(flag, userName).send(this.printWriter);
     }
     
-    void returnInformationAboutUserName(char flag, String msg) 
+     /**
+     * Returns information to this user about occurrance of given username.
+     * 
+     * @param msg is message which will be sent to this user.
+     * @param flag is flag from Protocol.
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.Protocol
+     */
+    public void returnInformationAboutUserName(char flag, String msg) 
     {
         new Message(flag, msg).send(this.printWriter);
     }
 
-    void initiateUsersData() 
+    
+    /**
+     * Initiates users data: mates and invitations.
+     */
+    public void initiateUsersData() 
     {
         new Message(Protocol.INITIATE, "").send(this.printWriter);
         
@@ -211,15 +316,13 @@ public class ModelServerClient
     {
         this.socket = socket;
     }
-
-    void setLists(Server.ControllerServerClient person) 
-    {
-        this.mates = person.getTheModel().mates;
-        this.invitesFromMe = person.getTheModel().invitesFromMe;
-        this.invitesToMe = person.getTheModel().invitesToMe;
-    }
     
-    void sendSocketInformationToMates() 
+    
+    /**
+     * If user again will logged mates must receive information about socket, because on his computer
+     * socket entirely different.
+     */
+    public void sendSocketInformationToMates() 
     {
         try
         {
@@ -227,13 +330,13 @@ public class ModelServerClient
             (
                 (mate)-> 
                 {
-                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setSocket(this.socket); 
-                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setPrintWriter(this.printWriter);
-                    mate.getValue().getTheModel().mates.get(this.userName).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
+                    mate.getValue().getTheModel().mates.get(this.getUserName()).getTheModel().setSocket(this.socket); 
+                    mate.getValue().getTheModel().mates.get(this.getUserName()).getTheModel().setPrintWriter(this.printWriter);
+                    mate.getValue().getTheModel().mates.get(this.getUserName()).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
                     
-                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setLogged(true);
+                    mate.getValue().getTheModel().mates.get(this.getUserName()).getTheModel().setLogged(true);
                     
-                    new Message(Protocol.LOGGED, this.userName).send(mate.getValue().getTheModel().getPrintWriter());
+                    new Message(Protocol.LOGGED, this.getUserName()).send(mate.getValue().getTheModel().getPrintWriter());
                 }
             );
             
@@ -250,9 +353,9 @@ public class ModelServerClient
             (
                 (mate)-> 
                 {
-                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setSocket(this.socket);
-                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheModel().setPrintWriter(this.printWriter);
-                    mate.getValue().getTheModel().invitesFromMe.get(this.userName).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
+                    mate.getValue().getTheModel().invitesFromMe.get(this.getUserName()).getTheModel().setSocket(this.socket);
+                    mate.getValue().getTheModel().invitesFromMe.get(this.getUserName()).getTheModel().setPrintWriter(this.printWriter);
+                    mate.getValue().getTheModel().invitesFromMe.get(this.getUserName()).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
                 }
             );
         }
@@ -267,9 +370,9 @@ public class ModelServerClient
             (
                 (mate)-> 
                 {
-                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setSocket(this.socket);
-                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheModel().setPrintWriter(this.printWriter);
-                    mate.getValue().getTheModel().invitesToMe.get(this.userName).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
+                    mate.getValue().getTheModel().invitesToMe.get(this.getUserName()).getTheModel().setSocket(this.socket);
+                    mate.getValue().getTheModel().invitesToMe.get(this.getUserName()).getTheModel().setPrintWriter(this.printWriter);
+                    mate.getValue().getTheModel().invitesToMe.get(this.getUserName()).getTheView().setBufferedReader(parent.getTheView().getBufferedReader());
                 }
             );
         }
@@ -294,27 +397,33 @@ public class ModelServerClient
     {
         this.logged = logged;
     }
-
-    void giveRemoveInformationToMates(String mateToRemove) 
+    
+    /**
+     * Returns information to this user about invitation both to me and from me.
+     * 
+     * @param mateToRemove is mates username who will be removed.
+     */
+    public void giveRemoveInformationToMates(String mateToRemove) 
     {
-        new Message(Protocol.REMOVE_MATE, this.userName).send(this.mates.get(mateToRemove).getTheModel().getPrintWriter());
+        new Message(Protocol.REMOVE_MATE, this.getUserName()).send(this.mates.get(mateToRemove).getTheModel().getPrintWriter());
 
         this.mates.remove(this.mates.get(mateToRemove).getTheModel().getUserName());
     }
     
-    int getLoggedSignalNuber()
+    /**
+     * @return loggedSignalNumber
+     */
+    public int getLoggedSignalNuber()
     {
         return this.loggedSignalNumber;
     }
     
-    void increaseSignalLogged() 
+    /**
+     * increase loggedSignalNumber;
+     */
+    public void increaseSignalLogged() 
     {
         this.loggedSignalNumber++;
-    }
-
-    void sendMessage(char flag, String string) 
-    {
-        new Message(flag, string).send(this.printWriter);
     }
 
     /**

@@ -13,21 +13,22 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * @author jakub
+ * Server class.
+ * 
+ * @author Jakub Wieczorek
+ * 
+ * @version 1.1
  */
 public class Server 
 {   
-    /**
-     * Keeping all clients as a new threads.
-     */
-    public ConcurrentHashMap<String, ControllerServerClient>clients;
+    private  ConcurrentHashMap<String, ControllerServerClient>clients;
+    
+    private final int PORT;
+    private ServerSocket server;
     
     /**
-     * PORT to server field.
+     * Constructor
      */
-    final int PORT;
-    ServerSocket server;
-    
     public Server()
     {
         this.clients = new ConcurrentHashMap<>();
@@ -36,6 +37,11 @@ public class Server
         this.runServer();
     }
     
+    /**
+     * @return seeking person.
+     * 
+     * @param userName is is username of seeking person.
+     */
     synchronized public ControllerServerClient findPerson(String userName)
     {
         return this.clients.get(userName);
@@ -76,12 +82,21 @@ public class Server
             System.err.println(ex.getMessage());
         }
     }
-    
+
+    /**
+     * Client as a thread.
+     */
     public class ControllerServerClient implements Runnable
     {
         private ViewServerClient theView;
         private ModelServerClient theModel;
-        Server parent;
+        private Server parent;
+        
+        /**
+         * Thread.
+         * 
+         * @see java.lang.Thread
+         */
         Thread thread;
         private TimerTaskImpl timerTask;
 
@@ -89,16 +104,17 @@ public class Server
          * Constructor to the NewClient class. 
          * 
          * @param socket is the same socket as in client who registered to server
-         * @param userName is users
-         * Name of client, now he must send it by simple message. In future will be sent automatically. 
+         * @param parent is server. 
          * 
-         * @see Wieczorek.Jakub.ChatApplication.ChatServer
+         * @throws NullPointerException when something will go wrong.
+         * 
+         * @see Wieczorek.Jakub.ChatApplication.Server.Server
          */
         public ControllerServerClient(Socket socket, Server parent) throws NullPointerException
         {
             // try initiate theView and theModel
             try
-            {    
+            {   
                 this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
                 
                 this.theModel.setSocket(socket);
@@ -113,71 +129,7 @@ public class Server
 
                 this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
                 
-                // get userName and password from theView
-                String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-
-                this.theModel.setUserName(userNameAndPass[0]);
-                this.theModel.setPassword(userNameAndPass[1]);
-                
-                
-                boolean newUser = true;
-                ControllerServerClient person;
-                // user in the same message must send username:password
-                // if userName exists user must input password
-                while(true)
-                {
-                    // if userName exist, server must check password
-                    person = parent.findPerson(this.theModel.getUserName());
-                    
-                    // if person dont exist user is new user
-                    if(person == null)
-                    {
-                        System.out.println("New client logged as " + this.theModel.getUserName());
-                        break;
-                    }
-                    
-                    // if user exist and he inputed proper password
-                    if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
-                    {
-                        System.out.println(this.theModel.getUserName() + " input proper password");
-                        // set proper flag in order to invoke function which will initate users data
-                        newUser = false;
-                        break;
-                    }
-                    
-                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
-                    
-                    userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-                    this.theModel.setUserName(userNameAndPass[0]);
-                    this.theModel.setPassword(userNameAndPass[1]);
-                }
-                
-                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
-                
-                if(person != null && newUser != true)
-                {
-                    if(person.getTheModel().isLogged())
-                    {
-                        person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
-                    } 
-                    
-                    person.getTheModel().setLogged(true);
-                    
-                    person.getTheModel().setSocket(socket);
-                    
-                    person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
-                    
-                    person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
-                    
-                    // also in all mates list of mates now is neccessary to switch me and meoldversion
-                    person.getTheModel().sendSocketInformationToMates();
-                    
-                    person.getTheModel().initiateUsersData();
-                    
-                    person.getTimerTask().setSignalSended(false);
-                    
-                    throw new NullPointerException("Same user");
-                }
+                this.getUserNameAndPass(socket);
             }
             catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
@@ -185,6 +137,71 @@ public class Server
                 
                 throw new NullPointerException("Error during logging");
             }
+        }
+        
+        private void getUserNameAndPass(Socket socket) throws IOException, NullPointerException
+        {
+            boolean newUser = true;
+                
+            ControllerServerClient person = null;
+            
+            String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+            this.theModel.setUserName(userNameAndPass[0]);
+            this.theModel.setPassword(userNameAndPass[1]);
+
+            while(true)
+            {
+                // if userName exist, server must check password
+                person = parent.findPerson(this.theModel.getUserName());
+
+                // if person dont exist user is new user
+                if(person == null)
+                {
+                    System.out.println("New client logged as " + this.theModel.getUserName());
+                    break;
+                }
+
+                // if user exist and he inputed proper password
+                if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
+                {
+                    System.out.println(this.theModel.getUserName() + " input proper password");
+                    // set proper flag in order to invoke function which will initate users data
+                    newUser = false;
+                    break;
+                }
+
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
+
+                userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                this.theModel.setUserName(userNameAndPass[0]);
+                this.theModel.setPassword(userNameAndPass[1]);
+            }
+            
+            
+        }
+        
+        private void constructorForExistingClient(ControllerServerClient person, Socket socket) throws IOException 
+        {
+            if(person.getTheModel().isLogged())
+            {
+                person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
+            } 
+
+            person.getTheModel().setLogged(true);
+
+            person.getTheModel().setSocket(socket);
+
+            person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
+
+            person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
+
+            // also in all mates list of mates now is neccessary to switch me and meoldversion
+            person.getTheModel().sendSocketInformationToMates();
+
+            person.getTheModel().initiateUsersData();
+
+            person.getTimerTask().setSignalSended(false);
+            person.getTheModel().resetLoggedSignalNumber();
         }
         
         private void directMessage(Message messageFromMe) throws IOException
@@ -350,14 +367,16 @@ public class Server
         /**
          * @return the theView
          */
-        public ViewServerClient getTheView() {
+        public ViewServerClient getTheView() 
+        {
             return theView;
         }
 
         /**
          * @param theView the theView to set
          */
-        public void setTheView(ViewServerClient theView) {
+        public void setTheView(ViewServerClient theView) 
+        {
             this.theView = theView;
         }
 
@@ -387,15 +406,24 @@ public class Server
             this.theModel.increaseSignalLogged();
         }
 
+        
+        /**
+         * Server must check connection between user and server. So after each for example 5 seconds
+         * server should receive information from user. If flag occurs everything is okey 
+         * otherwise information about logged out will be sent to mates.
+         */
         public class TimerTaskImpl extends TimerTask 
         {
+            /**
+             * Constructor
+             */
             public TimerTaskImpl() 
             {
                 oldValue = theModel.getLoggedSignalNuber();
                 signalSended = false;
             }
             
-            int oldValue;
+            private int oldValue;
             private boolean signalSended;
 
             @Override

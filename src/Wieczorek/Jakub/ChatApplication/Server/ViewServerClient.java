@@ -5,17 +5,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * @author jakub
+ * View part of MVC pattern for server.
+ * 
+ * @author Jakub Wieczorek
+ * 
+ * @version 1.1
  */
 public class ViewServerClient
 {
     private BufferedReader bufferedReader;
     
+    /**
+     * Constructor
+     * 
+     * @param bufferedReader is sockets bufferedReader
+     */
     public ViewServerClient(BufferedReader bufferedReader)
     {
         this.bufferedReader = bufferedReader;
     }
 
+    /**
+     * @return userName
+     * 
+     * @throws IOException
+     */
     String getUserName() throws IOException
     {
         try
@@ -28,6 +42,11 @@ public class ViewServerClient
         }
     }
 
+    /**
+     * @return msg
+     * 
+     * @throws IOException
+     */
     Message getMessage() throws IOException
     {
         Message msg = new Message();

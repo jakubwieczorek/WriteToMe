@@ -12,7 +12,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -25,32 +29,26 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * @author jakub
+ * View part of MVC pattern for user.
+ * 
+ * @author Jakub Wieczorek
+ * 
+ * @version 1.1
  */
 public class View extends javax.swing.JFrame {
 
-    /**
-     * The username for user.
-     */
-    String userName;
+    private String userName;
 
     /**
      * Instance as a thread. It is made for receiving messages and displaing all messages on 
-     * historyOfConversation.
-     * 
-     * @see Wieczorek.Jakub.ChatApplication.View#historyOfConversation
-     * @see Wieczorek.Jakub.ChatApplication.View.ReceiverMessages#run() 
+     * historyOfConversation. 
      */
-    View.ReceiverMessages receiverMessages; 
+    public View.ReceiverMessages receiverMessages; 
     
-    /**
-     * Model for listOfMates.
-     * 
-     * @see javax.swing.DefaultListModel
-     */
-    DefaultListModel<Mate>model = new DefaultListModel<>();
-    ConcurrentHashMap<String, Mate>modelMap = new ConcurrentHashMap();
+    private DefaultListModel<Mate>model = new DefaultListModel<>();
     
+    private ConcurrentHashMap<String, Mate>modelMap = new ConcurrentHashMap();
+
     private class MyListCellRenderer extends DefaultListCellRenderer 
     {
         @Override
@@ -80,6 +78,11 @@ public class View extends javax.swing.JFrame {
         private String userName;
         private boolean isLogged;
         
+        /**
+         * Constructor
+         * 
+         * @param userName is mates userName
+         */
         Mate(String userName)
         {
             this.userName = userName;
@@ -88,7 +91,7 @@ public class View extends javax.swing.JFrame {
         /**
          * @return the userName
          */
-        public String getUserName() 
+        String getUserName() 
         {
             return userName;
         }
@@ -96,7 +99,7 @@ public class View extends javax.swing.JFrame {
         /**
          * @param userName the userName to set
          */
-        public void setUserName(String userName) 
+        void setUserName(String userName) 
         {
             this.userName = userName;
         }
@@ -104,7 +107,7 @@ public class View extends javax.swing.JFrame {
         /**
          * @return the isLogged
          */
-        public boolean isIsLogged() 
+        boolean isIsLogged() 
         {
             return isLogged;
         }
@@ -112,7 +115,7 @@ public class View extends javax.swing.JFrame {
         /**
          * @param isLogged the isLogged to set
          */
-        public void setIsLogged(boolean isLogged) 
+        void setIsLogged(boolean isLogged) 
         {
             this.isLogged = isLogged;
         }
@@ -124,21 +127,21 @@ public class View extends javax.swing.JFrame {
         }
     }
     
-    /**
+    /*
      * Reference for controller who direct model and view. It is neccessary, becouse
      * if View didn't know about controller where this View would created, liseners for
      * buttons would have to be created in controller. For maintance the code and flexibility 
      * reference for controller in View class is better.
      * 
-     * @see javax.swing.DefaultListModel
+     * javax.swing.DefaultListModel
      */
-    Controller controller;
+    private Controller controller;
     
     /**
      * Constructor. 
      * 
-     * @param inputSream made for creating BufferedReader instance in receiverMessages.
-     * @see Wieczorek.Jakub.ChatApplication.View.ReceiverMessages#run()
+     * @param inputStream made for creating BufferedReader instance in receiverMessages.
+     * @param controller is reference for parent (controller).
      */
     public View(InputStream inputStream, Controller controller) 
     {
@@ -392,17 +395,34 @@ public class View extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    BufferedReader getBufferedReaeder() 
+    
+    /**
+     * @return bufferedReader
+     */
+    public BufferedReader getBufferedReaeder() 
     {
         return this.receiverMessages.bufferedReader;
     }
     
-    // class to receive messages with setting messages to object in parent class (View)
+    /**
+     * Class to receive messages with setting messages to object in parent class (View)
+     */
     public class ReceiverMessages implements Runnable
     {
-        BufferedReader bufferedReader;
+        private BufferedReader bufferedReader;
+        
+        /**
+         * Instance of thread.
+         * 
+         * @see java.lang.Thread
+         */
         Thread thread;
         
+        /**
+         * Constructor
+         * 
+         * @param inputStream is inputStream where all messages will be being sended.
+         */
         public ReceiverMessages(InputStream inputStream)
         {
             this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -476,6 +496,12 @@ public class View extends javax.swing.JFrame {
                         {
                             this.directLogged(msg);
                         }
+                        case Protocol.SERVER_WORKS:
+                        {
+                            this.serverWorksSignalNumber++;
+                            
+                            break;
+                        }
                     }
                 }
                 catch(IOException ex)
@@ -484,6 +510,8 @@ public class View extends javax.swing.JFrame {
                 }
             }
         }
+        
+
 
         private void directPersonInvitation(Message msg) throws IOException
         {
@@ -670,13 +698,59 @@ public class View extends javax.swing.JFrame {
                     model.removeElement((Mate)mate);
             }
         } 
+        
+        private int serverWorksSignalNumber = 0;
+        
+        /**
+        * Model per 5 seconds check wheter information about connection
+        * was received.
+        */
+        public void startReceivingSignals()
+        {
+            Timer timer = new Timer();
+
+            timer.scheduleAtFixedRate
+            (
+                new TimerTask() 
+                {
+                    
+                    private int oldValue = 0;
+                    private boolean signalReceived = false;
+                    
+                    @Override
+                    public void run() 
+                    {
+                        if(oldValue -  serverWorksSignalNumber == 0 && signalReceived == false)
+                        {
+                            setEnabled(false);
+                            historyOfConversation.append("\n Server's just broken down.");
+                            signalReceived = true;
+                        }
+
+                        oldValue = serverWorksSignalNumber;
+                    }
+                }
+            , 5000, 5000);
+        }
     }
     
-    String getUserName(String msg)
+    /**
+     * Show dialog which gets userName.
+     * 
+     * @param msg is message for user.
+     * 
+     * @return username or password
+     */
+    public String getUserName(String msg)
     {
         return (String)JOptionPane.showInputDialog(this, msg, "Write2Me!", JOptionPane.PLAIN_MESSAGE, null, null,"");
     }
       
+    /**
+     * setter for userName. This method sets also title for window.
+     * 
+     * @param userName is username for user.
+     */
     public void setUserName(String userName)
     {
         this.userName = userName;

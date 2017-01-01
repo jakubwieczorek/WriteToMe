@@ -4,18 +4,14 @@ import java.io.IOException;
 import java.io.BufferedReader;
 
 /**
- * @author jakub
+ * @author Jakub Wieczorek
+ * 
+ * @version 1.1
  */
 public class Message 
 {
-    /**
-     * The contents of the message.
-     */
     private String contents;
     
-    /**
-     * Flag from proper protocol. It is sent always before contents of the message.
-     */
     private char flag;
     
     /**
@@ -30,6 +26,10 @@ public class Message
         this.contents = contents;
     }
     
+    
+    /** 
+     * Default constructor created in order to reading message from buffered reader
+     */
     public Message(){}
     
     /**
@@ -52,7 +52,7 @@ public class Message
         return this.flag;
     }
     
-        /**
+     /**
      * setter for flag field
      * 
      * @param flag is new flag
@@ -75,7 +75,7 @@ public class Message
     /**
      * send message by given printwriter.
      * 
-     * @param printWriter
+     * @param printWriter is sockets printWriter
      */
     public void send(PrintWriter printWriter)
     {
@@ -86,8 +86,8 @@ public class Message
     /**
      * Receive message from given bufferedReader.
      * 
-     * @param bufferedReader
-     * @throws IOException
+     * @param bufferedReader is sockets bufferedReader
+     * @throws IOException throw when IOException occurres
      */
     public void receive(BufferedReader bufferedReader) throws IOException
     {

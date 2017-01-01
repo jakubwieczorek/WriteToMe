@@ -10,7 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Logic part of MVC patern for user.
+ * Model part of MVC patern for user.
  * 
  * @author Jakub Wieczorek
  * @version 1.1
@@ -18,151 +18,94 @@ import java.util.TimerTask;
 public class Model 
 {
     /**
-     * Instance of the Cliet class.
-     * 
-     * @see Wieczorek.Jakub.ChatApplication.Model.Client
-     */
-    Client client;
-    
-    /**
-     * Constructor 
-     * 
-     * @param userName username for user.
-     */
-    public Model(String userName)
-    {
-        this.client = new Client(userName);
-    }
-    
-    /**
      * Constructor 
      */
     public Model()
     {
-        this.client = new Client();
+        this.PORT = 1550;
+
+        try
+        {
+            this.socket = new Socket("localhost", this.PORT);
+            this.printWriter = new PrintWriter(this.socket.getOutputStream(), true);
+        }
+        catch(IOException ex)
+        {
+            System.err.println(ex.getMessage());
+        }
     }
     
-    /**
-     * Inner class created to organise Model class.
-     * 
-     * @author Jakub Wieczorek
-     * @version 1.1
-     */
-    class Client 
-    {
-        /**
-         * Allows to connect with server.
-         */
-        Socket socket;
-        
-        /**
-         * User username 
-         */
-        String userName;
-        
-        /**
-         * The same port which server is still hearing.
-         * 
-         * @see Wieczorek.Jakub.ChatApplication.ChatServer
-         */
-        final int PORT;
-        
-        /**
-         * By this PrintWriter instance, Client instance can send messages to the server.
-         */
-        PrintWriter printWriter;
-        
-        public void startSendingConnection()
-        {
-            Timer timer = new Timer();
-            
-            timer.scheduleAtFixedRate
-            (
-                new TimerTask() 
-                {
-                    @Override
-                    public void run() 
-                    {
-                        client.sendMsg(new Message(Protocol.LOGGED, ""));
-                    }
-                }
-            , 1000, 1000);
-        }
-            
-        /**
-         * Constructor.
-         * 
-         * @param userName is username for user. 
-         */
-        public Client(String userName)
-        {
-            this();
-            
-            this.userName = userName;
-            
-            // first thing after logged is to send username.
-            this.printWriter.println(userName);
-        }
-        
-        /**
-         * Constructor. Programist must send UserName and send them on his own after create Client.
-         */
-        public Client()
-        {
-            this.PORT = 1550;
+    private Socket socket;
 
-            try
+    private String userName;
+
+    private final int PORT;
+
+    private PrintWriter printWriter;
+
+    /**
+     * Model per each second sends information about connection in order to inform server
+     * whether user has internet connection or computer breaks down etc.
+     */
+    public void startSendingConnection()
+    {
+        Timer timer = new Timer();
+
+        timer.scheduleAtFixedRate
+        (
+            new TimerTask() 
             {
-                this.socket = new Socket("localhost", this.PORT);
-                this.printWriter = new PrintWriter(this.socket.getOutputStream(), true);
+                @Override
+                public void run() 
+                {
+                    sendMsg(new Message(Protocol.LOGGED, ""));
+                }
             }
-            catch(IOException ex)
-            {
-                System.err.println(ex.getMessage());
-            }
-        }
-        
-        /**
-         * @return inputstream for this socket.
-         * @throws IOException 
-         */
-        public InputStream getInputStream() throws IOException
-        {
-            return this.socket.getInputStream();
-        }
-        
-        /**
-         * Firts send flag to the server, then contents of the message.
-         * 
-         * @param msg must be created, that the contents field like forWho:text and the flag field 
-         * should be assigned by proper protocol parameter.
-         * 
-         * @see Message
-         */
-        public void sendMsg(Message msg)
-        {
-            msg.send(this.printWriter);
-        }
-        
-        /**
-         * setter for username.
-         * 
-         * @param name is the new name for user
-         */
-        public void setUserName(String name, String password)
-        {
-            this.userName = name;
-            this.printWriter.println(this.userName + ":" + password);
-        }
-        
-        /**
-         * getter for userName.
-         * 
-         * @return userName
-         */
-        public String getUserName()
-        {
-            return this.userName;
-        }
+        , 1000, 1000);
+    }
+
+    /**
+     * @return inputstream for this socket.
+     * @throws IOException is thrown when IOException occurrs.
+     */
+    public InputStream getInputStream() throws IOException
+    {
+        return this.socket.getInputStream();
+    }
+
+    /**
+     * Firts send flag to the server, then contents of the message.
+     * 
+     * @param msg must be created, that the contents field like forWho:text and the flag field 
+     * should be assigned by proper protocol parameter.
+     * 
+     * @see Wieczorek.Jakub.ChatApplication.Message
+     */
+    public void sendMsg(Message msg)
+    {
+        msg.send(this.printWriter);
+    }
+
+    /**
+     * Setter for username and password. After setting model sends information to server about username
+     * and password.
+     * 
+     * @param userName is username for user.
+     * @param password is password for account.
+     */
+    public void setUserNameAndPassword(String userName, String password)
+    {
+        this.userName = userName;
+        this.printWriter.println(this.userName + ":" + password);
+    }
+
+    /**
+     * getter for userName.
+     * 
+     * @return userName
+     */
+    public String getUserName()
+    {
+        return this.userName;
     }
 }
