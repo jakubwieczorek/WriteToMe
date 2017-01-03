@@ -130,6 +130,8 @@ public class Server
                 this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
                 
                 this.getUserNameAndPass(socket);
+                
+                this.timerTask = new TimerTaskImpl();
             }
             catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
@@ -177,7 +179,10 @@ public class Server
                 this.theModel.setPassword(userNameAndPass[1]);
             }
             
+            this.theModel.sendMessage(Protocol.PERSON_DONT_EXIST, "");
             
+            if(person != null && newUser == false)
+                this.constructorForExistingClient(person, socket);
         }
         
         private void constructorForExistingClient(ControllerServerClient person, Socket socket) throws IOException 
