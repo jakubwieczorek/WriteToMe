@@ -116,13 +116,13 @@ public class Server
             try
             {    
                 this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
-                this.timerTask = new TimerTaskImpl();
                 
                 this.theModel.setSocket(socket);
                 this.theModel.setParent(this);
                             
                 this.theModel.setLogged(true);  
                 
+                this.timerTask = new TimerTaskImpl();
                 
                 this.parent = parent;
                 // I use threads, because all users can communicate with each other independently
@@ -194,12 +194,10 @@ public class Server
                     person.getTimerTask().setSignalSended(false);
                 }
                 
-                this.theModel.startSendingConnection();
-                
                 if(person != null && newUser != true)
                     throw new NullPointerException("Same user");
                 
-                
+                this.theModel.startSendingConnection();
                 
             }
             catch(IOException | IllegalArgumentException | NullPointerException ex)
