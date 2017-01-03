@@ -114,8 +114,9 @@ public class Server
         {
             // try initiate theView and theModel
             try
-            {   
+            {    
                 this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
+                this.timerTask = new TimerTaskImpl();
                 
                 this.theModel.setSocket(socket);
                 this.theModel.setParent(this);
@@ -129,9 +130,77 @@ public class Server
 
                 this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
                 
-                this.getUserNameAndPass(socket);
+                // get userName and password from theView
+                String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+
+                this.theModel.setUserName(userNameAndPass[0]);
+                this.theModel.setPassword(userNameAndPass[1]);
                 
-                this.timerTask = new TimerTaskImpl();
+                
+                boolean newUser = true;
+                ControllerServerClient person;
+                // user in the same message must send username:password
+                // if userName exists user must input password
+                while(true)
+                {
+                    // if userName exist, server must check password
+                    person = parent.findPerson(this.theModel.getUserName());
+                    
+                    // if person dont exist user is new user
+                    if(person == null)
+                    {
+                        System.out.println("New client logged as " + this.theModel.getUserName());
+                        break;
+                    }
+                    
+                    // if user exist and he inputed proper password
+                    if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
+                    {
+                        System.out.println(this.theModel.getUserName() + " input proper password");
+                        // set proper flag in order to invoke function which will initate users data
+                        newUser = false;
+                        break;
+                    }
+                    
+                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
+                    
+                    userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                    this.theModel.setUserName(userNameAndPass[0]);
+                    this.theModel.setPassword(userNameAndPass[1]);
+                }
+                
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
+                
+                if(person != null && newUser != true)
+                {
+                    if(person.getTheModel().isLogged())
+                    {
+                        person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
+                    } 
+                    
+                    person.getTheModel().setLogged(true);
+                    
+                    person.getTheModel().setSocket(socket);
+                    
+                    person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
+                    
+                    person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
+                    
+                    // also in all mates list of mates now is neccessary to switch me and meoldversion
+                    person.getTheModel().sendSocketInformationToMates();
+                    
+                    person.getTheModel().initiateUsersData();
+                    
+                    person.getTimerTask().setSignalSended(false);
+                }
+                
+                this.theModel.startSendingConnection();
+                
+                if(person != null && newUser != true)
+                    throw new NullPointerException("Same user");
+                
+                
+                
             }
             catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
