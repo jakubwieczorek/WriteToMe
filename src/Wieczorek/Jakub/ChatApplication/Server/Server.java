@@ -409,7 +409,6 @@ public class Server
         {
             this.theModel.increaseSignalLogged();
         }
-
         
         /**
          * Server must check connection between user and server. So after each for example 5 seconds
