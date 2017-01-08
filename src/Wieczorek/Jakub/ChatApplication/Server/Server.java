@@ -62,12 +62,8 @@ public class Server
                 
                 try
                 {
-                    // newClient is created with gotten socket 
                     Server.ControllerServerClient newClient = new Server.ControllerServerClient(socket, this);
-                
-                    // newClient is added to database of clients
-                    this.clients.put(newClient.getTheModel().getUserName(), newClient);
-
+                    
                     // now client in server lives independently, when is called .start() method in newClient is called .run() method
                     newClient.thread.start();
                 }
@@ -110,102 +106,22 @@ public class Server
          * 
          * @see Wieczorek.Jakub.ChatApplication.Server.Server
          */
-        public ControllerServerClient(Socket socket, Server parent) throws NullPointerException
-        {
-            // try initiate theView and theModel
-            try
-            {    
-                this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
-                
-                this.theModel.setSocket(socket);
-                this.theModel.setParent(this);
-                            
-                this.theModel.setLogged(true);  
-                
-                this.timerTask = new TimerTaskImpl();
-                
-                this.parent = parent;
-                // I use threads, because all users can communicate with each other independently
-                this.thread = new Thread(this); 
+        public ControllerServerClient(Socket socket, Server parent) throws IOException
+        {  
+            this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
 
-                this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
-                
-                // get userName and password from theView
-                String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+            this.theModel.setSocket(socket);
+            this.theModel.setParent(this);
 
-                this.theModel.setUserName(userNameAndPass[0]);
-                this.theModel.setPassword(userNameAndPass[1]);
-                
-                
-                boolean newUser = true;
-                ControllerServerClient person;
-                // user in the same message must send username:password
-                // if userName exists user must input password
-                while(true)
-                {
-                    // if userName exist, server must check password
-                    person = parent.findPerson(this.theModel.getUserName());
-                    
-                    // if person dont exist user is new user
-                    if(person == null)
-                    {
-                        System.out.println("New client logged as " + this.theModel.getUserName());
-                        break;
-                    }
-                    
-                    // if user exist and he inputed proper password
-                    if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
-                    {
-                        System.out.println(this.theModel.getUserName() + " input proper password");
-                        // set proper flag in order to invoke function which will initate users data
-                        newUser = false;
-                        break;
-                    }
-                    
-                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
-                    
-                    userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-                    this.theModel.setUserName(userNameAndPass[0]);
-                    this.theModel.setPassword(userNameAndPass[1]);
-                }
-                
-                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
-                
-                if(person != null && newUser != true)
-                {
-                    if(person.getTheModel().isLogged())
-                    {
-                        person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
-                    } 
-                    
-                    person.getTheModel().setLogged(true);
-                    
-                    person.getTheModel().setSocket(socket);
-                    
-                    person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
-                    
-                    person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
-                    
-                    // also in all mates list of mates now is neccessary to switch me and meoldversion
-                    person.getTheModel().sendSocketInformationToMates();
-                    
-                    person.getTheModel().initiateUsersData();
-                    
-                    person.getTimerTask().setSignalSended(false);
-                }
-                
-                if(person != null && newUser != true)
-                    throw new NullPointerException("Same user");
-                
-                this.theModel.startSendingConnection();
-                
-            }
-            catch(IOException | IllegalArgumentException | NullPointerException ex)
-            {
-                System.err.println(ex.getMessage());
-                
-                throw new NullPointerException("Error during logging");
-            }
+            this.theModel.setLogged(true);  
+
+            this.timerTask = new TimerTaskImpl();
+
+            this.parent = parent;
+            // I use threads, because all users can communicate with each other independently
+            this.thread = new Thread(this); 
+
+            this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream()))); 
         }
         
         private void directMessage(Message messageFromMe) throws IOException
@@ -311,6 +227,31 @@ public class Server
         @Override
         public void run()
         {   
+            // try initiate theView and theModel
+            try
+            { 
+                ControllerServerClient person = this.readUserNameAndPass();
+
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
+
+                if(person != null)
+                {
+                    this.initilizeUsersData(person, this.theModel.getSocket());
+                }
+                else
+                {
+                    // newClient is added to database of clients
+                    this.parent.clients.put(this.getTheModel().getUserName(),this);
+                }
+            }
+            catch(IOException | IllegalArgumentException ex)
+            {
+                
+                System.err.println(ex.getMessage());
+            }
+
+            this.theModel.startSendingConnection();  
+            
             Timer timer = new Timer();
 
             timer.scheduleAtFixedRate(getTimerTask(), 5000, 5000);
@@ -408,8 +349,74 @@ public class Server
         private void directLogged() 
         {
             this.theModel.increaseSignalLogged();
+            
+            this.timerTask.setSignalSended(false);
         }
 
+        private Server.ControllerServerClient readUserNameAndPass() throws IOException, IllegalArgumentException
+        {
+            Server.ControllerServerClient person = null;
+
+            // get userName and password from theView
+            String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+
+            this.theModel.setUserName(userNameAndPass[0]);
+            this.theModel.setPassword(userNameAndPass[1]);
+
+            // user in the same message must send username:password
+            // if userName exists user must input password
+            while(true)
+            {
+                // if userName exist, server must check password
+                person = parent.findPerson(this.theModel.getUserName());
+
+                // if person dont exist user is new user
+                if(person == null)
+                {
+                    System.out.println("New client logged as " + this.theModel.getUserName());
+                    break;
+                }
+
+                // if user exist and he inputed proper password
+                if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
+                {
+                    System.out.println(this.theModel.getUserName() + " input proper password");
+
+                    break;
+                }
+
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
+
+                userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                this.theModel.setUserName(userNameAndPass[0]);
+                this.theModel.setPassword(userNameAndPass[1]);
+            }
+            
+            return person;
+        }
+
+        private void initilizeUsersData(ControllerServerClient person, Socket socket) throws IOException
+        {
+            if(person.getTheModel().isLogged())
+            {
+                person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
+            }
+
+            person.getTheModel().setLogged(true);
+
+            person.getTheModel().setSocket(socket);
+
+            person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
+
+            person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
+
+            // also in all mates list of mates now is neccessary to switch me and meoldversion
+            person.getTheModel().sendSocketInformationToMates();
+
+            person.getTheModel().initiateUsersData();
+
+            person.getTimerTask().setSignalSended(false);
+        }
         
         /**
          * Server must check connection between user and server. So after each for example 5 seconds
@@ -436,10 +443,16 @@ public class Server
                 if(oldValue - theModel.getLoggedSignalNuber() == 0 && signalSended == false)
                 {
                     setSignalSended(true);
-                    
-                    theModel.setLogged(false);
-                    
+
                     theModel.sendInformationAboutExitToMates();
+                }
+                else if(signalSended == true && oldValue - theModel.getLoggedSignalNuber() != 0)
+                {
+                    setSignalSended(false);
+                    
+                    theModel.setLogged(true);
+                    
+                    theModel.sendSocketInformationToMates();
                 }
                 
                 oldValue = theModel.getLoggedSignalNuber();
