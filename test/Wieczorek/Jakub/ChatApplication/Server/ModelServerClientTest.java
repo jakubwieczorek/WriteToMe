@@ -32,7 +32,7 @@ public class ModelServerClientTest
     public void testSplitUserNameAndMessage() 
     {
         String msg = "Kuba:Zdam";
-
+        
         String [] expResult = {"Kuba", "Zdam"};
         String [] result = instance.splitUserNameAndMessage(msg);
         
