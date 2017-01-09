@@ -44,10 +44,8 @@ public class ViewServerClient
 
     /**
      * @return msg
-     * 
-     * @throws IOException
      */
-    Message getMessage() throws IOException
+    Message getMessage()
     {
         Message msg = new Message();
         

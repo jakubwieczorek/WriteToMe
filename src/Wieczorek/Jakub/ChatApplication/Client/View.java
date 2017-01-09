@@ -437,7 +437,7 @@ public class View extends javax.swing.JFrame {
                     Message msg = new Message();
 
                     msg.receive(this.bufferedReader);
-                    
+                    if(msg != null)
                     switch(msg.getFlag())
                     {
                         case Protocol.MESSAGE:
@@ -508,8 +508,6 @@ public class View extends javax.swing.JFrame {
                 }
             }
         }
-        
-
 
         private void directPersonInvitation(Message msg) throws IOException
         {
@@ -577,7 +575,7 @@ public class View extends javax.swing.JFrame {
             Message agree = new Message();
             agree.receive(this.bufferedReader);
 
-            if(source.getFlag() == Protocol.FROM_ME)
+            if(source.getFlag().equals(Protocol.FROM_ME))
             {  
                 // mate seeking
                 for(Component menuComponent : invitationsSended.getMenuComponents()) 
@@ -588,7 +586,7 @@ public class View extends javax.swing.JFrame {
                     }
                 }
             }else
-            if(source.getFlag() == Protocol.TO_ME)
+            if(source.getFlag().equals(Protocol.TO_ME))
             { 
                 // mate seeking
                 for(Component menuComponent : invitationsReceived.getMenuComponents()) 
@@ -600,13 +598,13 @@ public class View extends javax.swing.JFrame {
                 }
             } 
 
-            if(agree.getFlag() == Protocol.AGREE)
+            if(agree.getFlag().equals(Protocol.AGREE))
             {
                 Mate mate = new Mate(agree.getText());
                 
                 source.receive(this.bufferedReader);
                 
-                mate.setIsLogged(source.getFlag() == Protocol.LOGGED);
+                mate.setIsLogged(source.getFlag().equals(Protocol.LOGGED));
                 
                 model.addElement(mate);
             }
@@ -620,7 +618,7 @@ public class View extends javax.swing.JFrame {
             
             section.receive(this.bufferedReader);
             
-            while(section.getFlag() != Protocol.INITIATE)
+            while(!section.getFlag().equals(Protocol.INITIATE))
             {
                 switch(section.getFlag())
                 {
@@ -630,7 +628,7 @@ public class View extends javax.swing.JFrame {
                         
                         section.receive(this.bufferedReader);
                         
-                        mate.setIsLogged(section.getFlag() == Protocol.LOGGED);
+                        mate.setIsLogged(section.getFlag().equals(Protocol.LOGGED));
                         
                         System.out.println(section.getFlag());
                         
@@ -662,17 +660,16 @@ public class View extends javax.swing.JFrame {
 
         private void directLogged(Message msg) 
         {
+            System.out.println("Logged");
+            
+            
             for(Object mate : model.toArray())
             {
                 if(((Mate)mate).userName.equals(msg.getText()))
                 {
                     ((Mate)mate).setIsLogged(true);
-                    System.out.println(((Mate)mate).isIsLogged());
                 }
             }
-            
-            listOfMates.repaint();
-            listOfMates.revalidate();
         }
         
         private void directExit(Message matesUserName) 

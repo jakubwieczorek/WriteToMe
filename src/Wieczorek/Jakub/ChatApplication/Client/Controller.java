@@ -66,7 +66,7 @@ public class Controller
                 
                 System.out.println(returnInfo.getFlag());
                 
-                if(returnInfo.getFlag() == Protocol.PERSON_DONT_EXIST)
+                if(returnInfo.getFlag().equals(Protocol.PERSON_DONT_EXIST))
                 {
                     this.theView.setUserName(userName);
                     break;
@@ -124,7 +124,7 @@ public class Controller
      * 
      * @see Wieczorek.Jakub.ChatApplication.Protocol
      */
-    void upgradeModelMateAnswer(String person, char flag) 
+    void upgradeModelMateAnswer(String person, String flag) 
     {
         theModel.sendMsg(new Message(Protocol.ANSWER, ""));
 

@@ -114,7 +114,7 @@ public class ModelServerClient
      * 
      * @see Wieczorek.Jakub.ChatApplication.Protocol
      */
-    public void giveInviteInformation(char flag, String msg, String msgTwo) 
+    public void giveInviteInformation(String flag, String msg, String msgTwo) 
     {   
         // message type invitation
         new Message(Protocol.PERSON_INVITATION, msg).send(this.printWriter);
@@ -138,9 +138,7 @@ public class ModelServerClient
             );
         }
         catch(NullPointerException ex)
-        {
-            System.err.println("sendInformationAboutExitToMates");
-        }
+        {}
     }
 
     /**
@@ -171,7 +169,7 @@ public class ModelServerClient
      * 
      * @see Wieczorek.Jakub.ChatApplication.Protocol
      */
-    void sendMessage(char flag, String string) 
+    void sendMessage(String flag, String string) 
     {
         new Message(flag, string).send(this.printWriter);
     }
@@ -186,7 +184,7 @@ public class ModelServerClient
      * 
      * @see Wieczorek.Jakub.ChatApplication.Protocol
      */
-    public void giveAddedInformation(char who, char flag, String userName, String msg) 
+    public void giveAddedInformation(String who, String flag, String userName, String msg) 
     {
         new Message(Protocol.ANSWER, "").send(this.printWriter);
         
@@ -203,7 +201,7 @@ public class ModelServerClient
      * 
      * @see Wieczorek.Jakub.ChatApplication.Protocol
      */
-    public void returnInformationAboutUserName(char flag, String msg) 
+    public void returnInformationAboutUserName(String flag, String msg) 
     {
         new Message(flag, msg).send(this.printWriter);
     }
@@ -215,8 +213,7 @@ public class ModelServerClient
     public void initiateUsersData() 
     {
         new Message(Protocol.INITIATE, "").send(this.printWriter);
-        
-        System.out.println(this.userName + " initiation");
+
         try
         {
             mates.entrySet().forEach
@@ -239,9 +236,7 @@ public class ModelServerClient
             );
         }
         catch(NullPointerException ex)
-        {
-            System.err.println("sendDataLoop");
-        }
+        {}
         
         new Message(Protocol.PERSON_INVITATION, "").send(this.printWriter);
         
@@ -254,7 +249,7 @@ public class ModelServerClient
         new Message(Protocol.INITIATE, "Initiation complete.").send(this.printWriter);
     }
     
-    private void sendDataLoop(char flag, ConcurrentHashMap<String, Server.ControllerServerClient>mates)
+    private void sendDataLoop(String flag, ConcurrentHashMap<String, Server.ControllerServerClient>mates)
     {
         try
         {
@@ -267,9 +262,7 @@ public class ModelServerClient
             );
         }
         catch(NullPointerException ex)
-        {
-            System.err.println("sendDataLoop");
-        }
+        {}
     }
     
     /**
@@ -342,13 +335,9 @@ public class ModelServerClient
                     new Message(Protocol.LOGGED, this.getUserName()).send(mate.getValue().getTheModel().getPrintWriter());
                 }
             );
-            
-            System.out.println("Sended");
         }
         catch(NullPointerException ex)
-        {
-            System.err.println("sendSocketInformationToMates + mates");
-        }
+        {}
         
         try
         {
@@ -363,9 +352,7 @@ public class ModelServerClient
             );
         }
         catch(NullPointerException ex)
-        {
-            System.err.println("sendSocketInformationToMates + ivitesFromMe");
-        }
+        {}
         
         try
         {
@@ -380,9 +367,7 @@ public class ModelServerClient
             );
         }
         catch(NullPointerException ex)
-        {
-            System.err.println("sendSocketInformationToMates + invitesToMe");
-        }
+        {}
     }
     
     /**

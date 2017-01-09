@@ -59,6 +59,8 @@ public class Model
                 public void run() 
                 {
                     sendMsg(new Message(Protocol.LOGGED, ""));
+                    
+                    System.out.println(getUserName() + " sended signal");
                 }
             }
         , 5000, 5000);

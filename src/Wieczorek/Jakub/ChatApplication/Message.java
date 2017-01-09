@@ -12,7 +12,7 @@ public class Message
 {
     private String contents;
     
-    private char flag;
+    private String flag;
     
     /**
      * Constructor
@@ -20,7 +20,7 @@ public class Message
      * @param contents is text of this message
      * @param flag is flag for this message determining type of this message.
      */
-    public Message(char flag, String contents)
+    public Message(String flag, String contents)
     {
         this.flag = flag;
         this.contents = contents;
@@ -47,7 +47,7 @@ public class Message
      * 
      * @return flag for these message
      */
-    public int getFlag()
+    public String getFlag()
     {
         return this.flag;
     }
@@ -57,7 +57,7 @@ public class Message
      * 
      * @param flag is new flag
      */
-    public void setFlag(char flag)
+    public void setFlag(String flag)
     {
         this.flag = flag;
     }
@@ -79,26 +79,47 @@ public class Message
      */
     public void send(PrintWriter printWriter)
     {
-        printWriter.print(this.flag);
-        printWriter.println(this.contents);
+        printWriter.println(this.flag + ";" + this.contents);
     }
     
     /**
      * Receive message from given bufferedReader.
      * 
      * @param bufferedReader is sockets bufferedReader
-     * @throws IOException throw when IOException occurres
      */
-    public void receive(BufferedReader bufferedReader) throws IOException
+    public void receive(BufferedReader bufferedReader)
     {
         try
         {
-            this.flag = (char)bufferedReader.read();
-            this.contents = bufferedReader.readLine();
+            String line = bufferedReader.readLine();
+            if(line != null)
+            {
+                String [] flagAndContents = this.splitFlagAndContents(line);
+                this.contents = flagAndContents[1];
+                this.flag = flagAndContents[0];
+            }
         }
-        catch(IOException ex)
+        catch(IOException | NullPointerException | IllegalArgumentException ex)
         {
-            throw new IOException("Lack of ability to read message");
+            System.err.println(ex.getMessage());
         }
+    }
+    
+    /**
+     * Splits msg for two Strings: before : character and after.
+     * 
+     * @param msg is String which should contains : character.
+     * @return Two elements Strings array. 
+     * @throws IllegalArgumentException when : character doesn't occur.
+     */
+    public String [] splitFlagAndContents(String msg) throws IllegalArgumentException
+    {
+        if(msg.contains(";"))
+        {
+            String flagAndMsg [] = msg.split(";", 2);
+            return flagAndMsg;
+        }
+
+        throw new IllegalArgumentException("Received message doesn't contains ';'");
     }
 }

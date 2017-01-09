@@ -86,7 +86,7 @@ public class Server
     {
         private ViewServerClient theView;
         private ModelServerClient theModel;
-        private Server parent;
+        private final Server parent;
         
         /**
          * Thread.
@@ -94,7 +94,8 @@ public class Server
          * @see java.lang.Thread
          */
         Thread thread;
-        private TimerTaskImpl timerTask;
+        private final TimerTaskImpl timerTask;
+        private final Timer timer;
 
         /**
          * Constructor to the NewClient class. 
@@ -110,12 +111,13 @@ public class Server
         {  
             this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
 
+            this.timer = new Timer();
             this.theModel.setSocket(socket);
             this.theModel.setParent(this);
 
             this.theModel.setLogged(true);  
 
-            this.timerTask = new TimerTaskImpl();
+            this.timerTask = new TimerTaskImpl(this);
 
             this.parent = parent;
             // I use threads, because all users can communicate with each other independently
@@ -186,7 +188,7 @@ public class Server
 
             if(mate != null)
             {
-                if(answer.getFlag() == Protocol.AGREE)
+                if(answer.getFlag().equals(Protocol.AGREE))
                 {   
                     // send information to me, because mate send to me invitation and I accept this invitation.
                     this.getTheModel().giveAddedInformation(Protocol.TO_ME, Protocol.AGREE, mate.getTheModel().getUserName(), "You added " + mate.getTheModel().getUserName() + " to mates!");
@@ -210,7 +212,7 @@ public class Server
                     mate.getTheModel().mates.put(this.theModel.getUserName(), this);
                 }
                 else
-                if(answer.getFlag() == Protocol.DISAGREE)
+                if(answer.getFlag().equals(Protocol.DISAGREE))
                 {
                     System.out.println("ANSWER + DISAGREE");
                     // send information TO_ME. I received information and I refuse it.
@@ -223,7 +225,15 @@ public class Server
                 this.theModel.invitesToMe.remove(mate.getTheModel().getUserName());
             }
         }                 
-                            
+         
+        private volatile boolean isRunning = true;
+        
+        public void kill() 
+        {
+            isRunning = false;
+            this.timer.cancel();
+        }
+        
         @Override
         public void run()
         {   
@@ -236,77 +246,79 @@ public class Server
 
                 if(person != null)
                 {
-                    this.initilizeUsersData(person, this.theModel.getSocket());
+                    //synchronized(person){person.notify();}
+                    this.initilizeUsersData(person);
+                  
+                    person.kill();
+                    
+                    this.parent.clients.remove(this.getTheModel().getUserName()); 
                 }
-                else
-                {
-                    // newClient is added to database of clients
-                    this.parent.clients.put(this.getTheModel().getUserName(),this);
-                }
-            }
-            catch(IOException | IllegalArgumentException ex)
-            {
                 
-                System.err.println(ex.getMessage());
-            }
+                // newClient is added to database of clients
+                this.parent.clients.put(this.getTheModel().getUserName(),this);
 
-            this.theModel.startSendingConnection();  
-            
-            Timer timer = new Timer();
 
-            timer.scheduleAtFixedRate(getTimerTask(), 15000, 15000);
-            
-            try
-            {   
-                while(true)
-                {
-                    Message messageFromMe = this.getTheView().getMessage();
-                            
-                    switch(messageFromMe.getFlag())
+                this.theModel.startSendingConnection();  
+
+                timer.scheduleAtFixedRate(getTimerTask(), 15000, 15000);
+
+                while(isRunning)
+                {             
+                    try
+                    {  
+                        Message messageFromMe = this.getTheView().getMessage();
+
+                        if(messageFromMe != null && messageFromMe.getFlag() != null )
+                        switch(messageFromMe.getFlag())
+                        {
+                            case Protocol.MESSAGE:
+                            {
+                                this.directMessage(messageFromMe);
+
+                                break;
+                            }
+                            case Protocol.PERSON_INQUIRE:
+                            {
+                                this.directPersonInquire(messageFromMe);
+
+                                break;
+                            }
+                            case Protocol.ANSWER:
+                            {
+                                this.directAnswer();
+
+                                break;
+                            }
+                            case Protocol.EXIT:
+                            {
+                                getTheModel().setLogged(false);
+
+                                break;
+                            }
+                            case Protocol.REMOVE_MATE:
+                            {
+                                this.directRemoveMate(messageFromMe);
+
+                                break;
+                            }
+                            case Protocol.LOGGED:
+                            {
+                                this.directLogged();
+
+                                break;
+                            }
+                        }
+                    }
+                    catch(IOException ex)
                     {
-                        case Protocol.MESSAGE:
-                        {
-                            this.directMessage(messageFromMe);
-                            
-                            break;
-                        }
-                        case Protocol.PERSON_INQUIRE:
-                        {
-                            this.directPersonInquire(messageFromMe);
-
-                            break;
-                        }
-                        case Protocol.ANSWER:
-                        {
-                            this.directAnswer();
-                            
-                            break;
-                        }
-                        case Protocol.EXIT:
-                        {
-                            getTheModel().setLogged(false);
-                            
-                            break;
-                        }
-                        case Protocol.REMOVE_MATE:
-                        {
-                            this.directRemoveMate(messageFromMe);
-                            
-                            break;
-                        }
-                        case Protocol.LOGGED:
-                        {
-                            this.directLogged();
-                            
-                            break;
-                        }
+                        System.err.println(ex.getMessage());
                     }
                 }
             }
-            catch(IOException ex)
+            catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
                 System.err.println(ex.getMessage());
-            } 
+            }
         }
 
         /**
@@ -350,7 +362,7 @@ public class Server
         {
             this.theModel.increaseSignalLogged();
             
-            this.timerTask.setSignalSended(false);
+            System.out.println(this.getTheModel().getUserName() + " get signal");
         }
 
         private Server.ControllerServerClient readUserNameAndPass() throws IOException, IllegalArgumentException
@@ -395,27 +407,18 @@ public class Server
             return person;
         }
 
-        private void initilizeUsersData(ControllerServerClient person, Socket socket) throws IOException
+        private void initilizeUsersData(ControllerServerClient person) throws IOException
         {
             if(person.getTheModel().isLogged())
             {
                 person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
             }
 
-            person.getTheModel().setLogged(true);
-
-            person.getTheModel().setSocket(socket);
-
-            person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
-
-            person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
-
-            // also in all mates list of mates now is neccessary to switch me and meoldversion
-            person.getTheModel().sendSocketInformationToMates();
-
-            person.getTheModel().initiateUsersData();
-
-            person.getTimerTask().setSignalSended(false);
+            this.theModel.invitesFromMe = person.getTheModel().invitesFromMe;
+            this.theModel.invitesToMe = person.getTheModel().invitesToMe;
+            this.theModel.mates = person.getTheModel().mates;
+            
+            this.theModel.initiateUsersData();
         }
         
         /**
@@ -425,32 +428,34 @@ public class Server
          */
         public class TimerTaskImpl extends TimerTask 
         {
+                        
+            private int oldValue;
+            final Server.ControllerServerClient parent;
+            
             /**
              * Constructor
              */
-            public TimerTaskImpl() 
+            public TimerTaskImpl(Server.ControllerServerClient parent) 
             {
                 oldValue = theModel.getLoggedSignalNuber();
-                signalSended = false;
+                
+                this.parent = parent;
             }
             
-            private int oldValue;
-            private boolean signalSended;
-
             @Override
             public void run()
             {
-                if(oldValue - theModel.getLoggedSignalNuber() == 0 && signalSended == false)
+                if(oldValue == theModel.getLoggedSignalNuber())
                 {
-                    setSignalSended(true);
+                    System.out.println(getTheModel().getUserName() + " send exit information");
                     
                     theModel.setLogged(false);
 
                     theModel.sendInformationAboutExitToMates();
                 }
-                else if(oldValue - theModel.getLoggedSignalNuber() != 0)
+                else
                 {
-                    setSignalSended(false);
+                    System.out.println(getTheModel().getUserName() + " send logged information");
                     
                     theModel.setLogged(true);
                     
@@ -458,14 +463,6 @@ public class Server
                 }
                 
                 oldValue = theModel.getLoggedSignalNuber();
-            }
-
-            /**
-             * @param signalSended the signalSended to set
-             */
-            public void setSignalSended(boolean signalSended) 
-            {
-                this.signalSended = signalSended;
             }
         }
 
