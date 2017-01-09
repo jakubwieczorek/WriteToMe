@@ -61,7 +61,7 @@ public class Model
                     sendMsg(new Message(Protocol.LOGGED, ""));
                 }
             }
-        , 1000, 1000);
+        , 5000, 5000);
     }
 
     /**

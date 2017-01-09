@@ -254,14 +254,14 @@ public class Server
             
             Timer timer = new Timer();
 
-            timer.scheduleAtFixedRate(getTimerTask(), 5000, 5000);
+            timer.scheduleAtFixedRate(getTimerTask(), 15000, 15000);
             
             try
             {   
                 while(true)
                 {
                     Message messageFromMe = this.getTheView().getMessage();
-
+                            
                     switch(messageFromMe.getFlag())
                     {
                         case Protocol.MESSAGE:
@@ -443,10 +443,12 @@ public class Server
                 if(oldValue - theModel.getLoggedSignalNuber() == 0 && signalSended == false)
                 {
                     setSignalSended(true);
+                    
+                    theModel.setLogged(false);
 
                     theModel.sendInformationAboutExitToMates();
                 }
-                else if(signalSended == true && oldValue - theModel.getLoggedSignalNuber() != 0)
+                else if(oldValue - theModel.getLoggedSignalNuber() != 0)
                 {
                     setSignalSended(false);
                     

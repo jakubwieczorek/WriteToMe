@@ -161,7 +161,7 @@ public class ModelServerClient
                     sendMessage(Protocol.SERVER_WORKS, "");
                 }
             }
-        , 1000, 1000);
+        , 5000, 5000);
     }
     
     /**
@@ -216,6 +216,7 @@ public class ModelServerClient
     {
         new Message(Protocol.INITIATE, "").send(this.printWriter);
         
+        System.out.println(this.userName + " initiation");
         try
         {
             mates.entrySet().forEach
@@ -226,10 +227,12 @@ public class ModelServerClient
                     
                     if(mate.getValue().getTheModel().isLogged() == true)
                     {
+                        System.out.println(mate.getValue().getTheModel().getUserName() + " Logged");
                         new Message(Protocol.LOGGED, "").send(this.printWriter);
                     }
                     else
                     {
+                        System.out.println(mate.getValue().getTheModel().getUserName() + " Unlogged");
                         new Message(Protocol.UNLOGGED, "").send(this.printWriter);
                     }
                 }

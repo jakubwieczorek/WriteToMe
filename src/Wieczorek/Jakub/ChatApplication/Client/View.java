@@ -15,8 +15,6 @@ import java.io.InputStreamReader;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -730,7 +728,7 @@ public class View extends javax.swing.JFrame {
                         oldValue = serverWorksSignalNumber;
                     }
                 }
-            , 5000, 5000);
+            , 15000, 15000);
         }
     }
     
