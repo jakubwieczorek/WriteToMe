@@ -394,7 +394,8 @@ public class ModelServerClient
     public void giveRemoveInformationToMates(String mateToRemove) 
     {
         new Message(Protocol.REMOVE_MATE, this.getUserName()).send(this.mates.get(mateToRemove).getTheModel().getPrintWriter());
-
+        
+        this.mates.get(mateToRemove).getTheModel().mates.remove(this.userName);
         this.mates.remove(this.mates.get(mateToRemove).getTheModel().getUserName());
     }
     

@@ -76,44 +76,4 @@ public class ModelServerClientTest
         String msg = "KubaZdam";
         instance.splitUserNameAndMessage(msg);
     }
-
-    /*
-    package com.icidigital.services
-
-    import com.icidigital.users.ClassA
-    import com.icidigital.users.ClassB
-    import org.junit.Before
-    import org.junit.Test
-    import org.junit.runner.RunWith
-    import org.mockito.Mock
-    import org.mockito.Mockito
-    import org.mockito.runners.MockitoJUnitRunner
-
-    @RunWith(MockitoJUnitRunner.class)
-    class TestSimplestMock {
-
-        ClassB classB;
-
-        @Mock
-        ClassA mockA;
-
-        @Before
-        public void setup(){
-
-
-            classB=new ClassB(mockA);
-
-            Mockito.when(classB.getClassA()).thenReturn(null);
-
-        }
-
-        @Test
-        public void testA(){
-
-            ClassA obj=classB.getClassA();
-
-            assert(obj==null);
-
-        }
-    }*/ 
 }

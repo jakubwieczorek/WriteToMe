@@ -160,6 +160,18 @@ public class Server
                 this.getTheModel().returnInformationAboutExistance("You can't add yourself to mates.");
                 return;
             }
+            
+            if(this.getTheModel().mates.get(messageFromMe.getText()) != null)
+            {
+                this.getTheModel().returnInformationAboutExistance("You've already add " + messageFromMe.getText() + " to mates.");
+                return;
+            }
+            
+            if(this.getTheModel().invitesFromMe.get(messageFromMe.getText()) != null)
+            {
+                this.getTheModel().returnInformationAboutExistance("You've sent " + messageFromMe.getText() + " invitation.");
+                return;
+            }
                 
             // find mate
             ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
@@ -246,7 +258,6 @@ public class Server
 
                 if(person != null)
                 {
-                    //synchronized(person){person.notify();}
                     this.initilizeUsersData(person);
                   
                     person.kill();
@@ -365,7 +376,7 @@ public class Server
             System.out.println(this.getTheModel().getUserName() + " get signal");
         }
 
-        private Server.ControllerServerClient readUserNameAndPass() throws IOException, IllegalArgumentException
+        public Server.ControllerServerClient readUserNameAndPass() throws IOException, IllegalArgumentException
         {
             Server.ControllerServerClient person = null;
 

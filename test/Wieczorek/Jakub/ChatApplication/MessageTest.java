@@ -22,16 +22,45 @@ public class MessageTest
     {
         //Given
         BufferedReader bufferedReader = Mockito.mock(BufferedReader.class);
-        Mockito.when(bufferedReader.readLine()).thenReturn("Kuba");
-        Mockito.when(bufferedReader.read()).thenReturn(2);
+        Mockito.when(bufferedReader.readLine()).thenReturn("2;Kuba");
         Message instance = new Message();
         
         //When
         instance.receive(bufferedReader);
 
         //Then
-        String[] expResult = {String.valueOf(2), "Kuba"};
-        String[] result = {String.valueOf(instance.getFlag()), instance.getText()};
+        String[] expResult = {"2", "Kuba"};
+        String[] result = {instance.getFlag(), instance.getText()};
+        assertArrayEquals(expResult, result);
+    }
+    
+    @Test
+    public void testSplitFlagAndContents()
+    {
+        //Given
+        String msg = "2;Kuba";
+        Message instance = new Message();
+        
+        //when
+        String [] result = instance.splitFlagAndContents(msg);
+        String [] expResult = {"2", "Kuba"};
+        
+        //Then
+        assertArrayEquals(expResult, result);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void test2SplitFlagAndContents()
+    {
+        //Given
+        String msg = "2Kuba";
+        Message instance = new Message();
+        
+        //when
+        String [] result = instance.splitFlagAndContents(msg);
+        String [] expResult = {"2", "Kuba"};
+        
+        //Then
         assertArrayEquals(expResult, result);
     }
 }

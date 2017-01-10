@@ -58,12 +58,10 @@ public class View extends javax.swing.JFrame {
             
             if(((Mate)value).isIsLogged()) 
             {
-                System.out.println("Green");
                 this.setBackground(Color.GREEN);
             }
             else
             {
-                System.out.println("Red");
                 this.setBackground(Color.RED);
             }
 
@@ -223,8 +221,17 @@ public class View extends javax.swing.JFrame {
                         addMateButton.setEnabled(true);
                         
                         if(!listOfMates.isSelectionEmpty())
-                            sendButton.setEnabled(true);
-                    } 
+                        {
+                            if(((Mate)listOfMates.getSelectedValue()).isLogged == false)
+                                sendButton.setEnabled(false);
+                            else
+                                sendButton.setEnabled(true);
+                        }       
+                        else
+                            sendButton.setEnabled(false);
+                    }
+                    
+                    listOfMates.clearSelection();
                 }
             }
         );
@@ -233,10 +240,23 @@ public class View extends javax.swing.JFrame {
         (
             (event)->
             {
-                if(textToSend.getText().equals("") || ((Mate)this.listOfMates.getSelectedValue()).isLogged == false)
+                
+                if(textToSend.getText().equals(""))
+                {
                     sendButton.setEnabled(false);
+                }
                 else
-                    sendButton.setEnabled(true);
+                {
+                    if(!listOfMates.isSelectionEmpty())
+                    {
+                        if(((Mate)listOfMates.getSelectedValue()).isLogged == false)
+                            sendButton.setEnabled(false);
+                        else
+                            sendButton.setEnabled(true);
+                    }       
+                    else
+                        sendButton.setEnabled(false);
+                }
             }
         );
         
@@ -427,10 +447,17 @@ public class View extends javax.swing.JFrame {
             this.thread = new Thread(this);
         }
         
+        private volatile boolean isRunning = true;
+        
+        public void kill() 
+        {
+            isRunning = false;
+        }
+        
         @Override
         public void run()
         {
-            while(true)
+            while(isRunning)
             {
                 try
                 {
@@ -481,6 +508,8 @@ public class View extends javax.swing.JFrame {
                             historyOfConversation.append(msg.getText() + "\n");
                             
                             setEnabled(false);
+                            
+                            this.kill();
                             
                             break;
                         }
@@ -715,7 +744,7 @@ public class View extends javax.swing.JFrame {
                     @Override
                     public void run() 
                     {
-                        if(oldValue -  serverWorksSignalNumber == 0 && signalReceived == false)
+                        if(oldValue -  serverWorksSignalNumber == 0 && signalReceived == false && isRunning == true)
                         {
                             setEnabled(false);
                             historyOfConversation.append("\n Server's just broken down.");
