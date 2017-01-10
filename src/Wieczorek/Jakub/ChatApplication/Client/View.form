@@ -104,7 +104,7 @@
               <StringArray count="0"/>
             </Property>
             <Property name="selectionMode" type="int" value="0"/>
-            <Property name="toolTipText" type="java.lang.String" value="&quot;All your mates.&quot;"/>
+            <Property name="toolTipText" type="java.lang.String" value="&quot;All your mates. Green mate is logged, red is unlogged.&quot;"/>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value=""/>
@@ -115,19 +115,19 @@
     <Component class="javax.swing.JButton" name="sendButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Send"/>
-        <Property name="toolTipText" type="java.lang.String" value="&quot;Enter message to send then click on send, or mates username then click on add.&quot;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&quot;Enter the message and click in order to send.&quot;"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="textToSend">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&quot;Write something. See instruction.&quot;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&quot;Write something. See instruction in case of doubts.&quot;"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="addMateButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Invite"/>
-        <Property name="toolTipText" type="java.lang.String" value="&quot;Enter the message and click me.&quot;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&quot;Enter username of seeking person, then click.&quot;"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
@@ -143,6 +143,7 @@
             <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
           </Properties>
         </Component>
       </SubComponents>

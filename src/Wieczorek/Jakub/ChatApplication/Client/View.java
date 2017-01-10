@@ -347,22 +347,23 @@ public class View extends javax.swing.JFrame {
         listOfMatesScrollPane.setToolTipText("");
 
         listOfMates.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        listOfMates.setToolTipText("\"All your mates.\"");
+        listOfMates.setToolTipText("\"All your mates. Green mate is logged, red is unlogged.\"");
         listOfMatesScrollPane.setViewportView(listOfMates);
 
         sendButton.setText("Send");
-        sendButton.setToolTipText("\"Enter message to send then click on send, or mates username then click on add.\"");
+        sendButton.setToolTipText("\"Enter the message and click in order to send.\"");
         sendButton.setEnabled(false);
 
-        textToSend.setToolTipText("\"Write something. See instruction.\"");
+        textToSend.setToolTipText("\"Write something. See instruction in case of doubts.\"");
 
         addMateButton.setText("Invite");
-        addMateButton.setToolTipText("\"Enter the message and click me.\"");
+        addMateButton.setToolTipText("\"Enter username of seeking person, then click.\"");
         addMateButton.setEnabled(false);
 
         historyOfConversation.setEditable(false);
         historyOfConversation.setColumns(20);
         historyOfConversation.setRows(5);
+        historyOfConversation.setToolTipText("");
         historyOfConversationScrollPane.setViewportView(historyOfConversation);
 
         menuInvitations.setText("Invitations");
@@ -464,7 +465,7 @@ public class View extends javax.swing.JFrame {
                     Message msg = new Message();
 
                     msg.receive(this.bufferedReader);
-                    if(msg != null)
+                    if(msg != null && msg.getFlag() != null)
                     switch(msg.getFlag())
                     {
                         case Protocol.MESSAGE:
