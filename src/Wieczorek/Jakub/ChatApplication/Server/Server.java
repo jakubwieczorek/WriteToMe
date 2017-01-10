@@ -62,12 +62,8 @@ public class Server
                 
                 try
                 {
-                    // newClient is created with gotten socket 
                     Server.ControllerServerClient newClient = new Server.ControllerServerClient(socket, this);
-                
-                    // newClient is added to database of clients
-                    this.clients.put(newClient.getTheModel().getUserName(), newClient);
-
+                    
                     // now client in server lives independently, when is called .start() method in newClient is called .run() method
                     newClient.thread.start();
                 }
@@ -90,7 +86,7 @@ public class Server
     {
         private ViewServerClient theView;
         private ModelServerClient theModel;
-        private Server parent;
+        private final Server parent;
         
         /**
          * Thread.
@@ -98,7 +94,8 @@ public class Server
          * @see java.lang.Thread
          */
         Thread thread;
-        private TimerTaskImpl timerTask;
+        private final TimerTaskImpl timerTask;
+        private final Timer timer;
 
         /**
          * Constructor to the NewClient class. 
@@ -110,102 +107,23 @@ public class Server
          * 
          * @see Wieczorek.Jakub.ChatApplication.Server.Server
          */
-        public ControllerServerClient(Socket socket, Server parent) throws NullPointerException
-        {
-            // try initiate theView and theModel
-            try
-            {    
-                this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
-                
-                this.theModel.setSocket(socket);
-                this.theModel.setParent(this);
-                            
-                this.theModel.setLogged(true);  
-                
-                this.timerTask = new TimerTaskImpl();
-                
-                this.parent = parent;
-                // I use threads, because all users can communicate with each other independently
-                this.thread = new Thread(this); 
+        public ControllerServerClient(Socket socket, Server parent) throws IOException
+        {  
+            this.theModel = new ModelServerClient(new PrintWriter(socket.getOutputStream(), true));
 
-                this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream())));
-                
-                // get userName and password from theView
-                String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+            this.timer = new Timer();
+            this.theModel.setSocket(socket);
+            this.theModel.setParent(this);
 
-                this.theModel.setUserName(userNameAndPass[0]);
-                this.theModel.setPassword(userNameAndPass[1]);
-                
-                
-                boolean newUser = true;
-                ControllerServerClient person;
-                // user in the same message must send username:password
-                // if userName exists user must input password
-                while(true)
-                {
-                    // if userName exist, server must check password
-                    person = parent.findPerson(this.theModel.getUserName());
-                    
-                    // if person dont exist user is new user
-                    if(person == null)
-                    {
-                        System.out.println("New client logged as " + this.theModel.getUserName());
-                        break;
-                    }
-                    
-                    // if user exist and he inputed proper password
-                    if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
-                    {
-                        System.out.println(this.theModel.getUserName() + " input proper password");
-                        // set proper flag in order to invoke function which will initate users data
-                        newUser = false;
-                        break;
-                    }
-                    
-                    this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
-                    
-                    userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
-                    this.theModel.setUserName(userNameAndPass[0]);
-                    this.theModel.setPassword(userNameAndPass[1]);
-                }
-                
-                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
-                
-                if(person != null && newUser != true)
-                {
-                    if(person.getTheModel().isLogged())
-                    {
-                        person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
-                    } 
-                    
-                    person.getTheModel().setLogged(true);
-                    
-                    person.getTheModel().setSocket(socket);
-                    
-                    person.getTheView().setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
-                    
-                    person.getTheModel().setPrintWriter(new PrintWriter(socket.getOutputStream(), true));
-                    
-                    // also in all mates list of mates now is neccessary to switch me and meoldversion
-                    person.getTheModel().sendSocketInformationToMates();
-                    
-                    person.getTheModel().initiateUsersData();
-                    
-                    person.getTimerTask().setSignalSended(false);
-                }
-                
-                if(person != null && newUser != true)
-                    throw new NullPointerException("Same user");
-                
-                this.theModel.startSendingConnection();
-                
-            }
-            catch(IOException | IllegalArgumentException | NullPointerException ex)
-            {
-                System.err.println(ex.getMessage());
-                
-                throw new NullPointerException("Error during logging");
-            }
+            this.theModel.setLogged(true);  
+
+            this.timerTask = new TimerTaskImpl(this);
+
+            this.parent = parent;
+            // I use threads, because all users can communicate with each other independently
+            this.thread = new Thread(this); 
+
+            this.theView = new ViewServerClient(new BufferedReader(new InputStreamReader(this.theModel.getSocket().getInputStream()))); 
         }
         
         private void directMessage(Message messageFromMe) throws IOException
@@ -242,6 +160,18 @@ public class Server
                 this.getTheModel().returnInformationAboutExistance("You can't add yourself to mates.");
                 return;
             }
+            
+            if(this.getTheModel().mates.get(messageFromMe.getText()) != null)
+            {
+                this.getTheModel().returnInformationAboutExistance("You've already add " + messageFromMe.getText() + " to mates.");
+                return;
+            }
+            
+            if(this.getTheModel().invitesFromMe.get(messageFromMe.getText()) != null)
+            {
+                this.getTheModel().returnInformationAboutExistance("You've sent " + messageFromMe.getText() + " invitation.");
+                return;
+            }
                 
             // find mate
             ControllerServerClient receiver = parent.findPerson(messageFromMe.getText());
@@ -270,7 +200,7 @@ public class Server
 
             if(mate != null)
             {
-                if(answer.getFlag() == Protocol.AGREE)
+                if(answer.getFlag().equals(Protocol.AGREE))
                 {   
                     // send information to me, because mate send to me invitation and I accept this invitation.
                     this.getTheModel().giveAddedInformation(Protocol.TO_ME, Protocol.AGREE, mate.getTheModel().getUserName(), "You added " + mate.getTheModel().getUserName() + " to mates!");
@@ -294,7 +224,7 @@ public class Server
                     mate.getTheModel().mates.put(this.theModel.getUserName(), this);
                 }
                 else
-                if(answer.getFlag() == Protocol.DISAGREE)
+                if(answer.getFlag().equals(Protocol.DISAGREE))
                 {
                     System.out.println("ANSWER + DISAGREE");
                     // send information TO_ME. I received information and I refuse it.
@@ -307,65 +237,99 @@ public class Server
                 this.theModel.invitesToMe.remove(mate.getTheModel().getUserName());
             }
         }                 
-                            
+         
+        private volatile boolean isRunning = true;
+        
+        public void kill() 
+        {
+            isRunning = false;
+            this.timer.cancel();
+        }
+        
         @Override
         public void run()
         {   
-            Timer timer = new Timer();
-
-            timer.scheduleAtFixedRate(getTimerTask(), 5000, 5000);
-            
+            // try initiate theView and theModel
             try
-            {   
-                while(true)
+            { 
+                ControllerServerClient person = this.readUserNameAndPass();
+
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_DONT_EXIST, "");
+
+                if(person != null)
                 {
-                    Message messageFromMe = this.getTheView().getMessage();
+                    this.initilizeUsersData(person);
+                  
+                    person.kill();
+                    
+                    this.parent.clients.remove(this.getTheModel().getUserName()); 
+                }
+                
+                // newClient is added to database of clients
+                this.parent.clients.put(this.getTheModel().getUserName(),this);
 
-                    switch(messageFromMe.getFlag())
+
+                this.theModel.startSendingConnection();  
+
+                timer.scheduleAtFixedRate(getTimerTask(), 15000, 15000);
+
+                while(isRunning)
+                {             
+                    try
+                    {  
+                        Message messageFromMe = this.getTheView().getMessage();
+
+                        if(messageFromMe != null && messageFromMe.getFlag() != null )
+                        switch(messageFromMe.getFlag())
+                        {
+                            case Protocol.MESSAGE:
+                            {
+                                this.directMessage(messageFromMe);
+
+                                break;
+                            }
+                            case Protocol.PERSON_INQUIRE:
+                            {
+                                this.directPersonInquire(messageFromMe);
+
+                                break;
+                            }
+                            case Protocol.ANSWER:
+                            {
+                                this.directAnswer();
+
+                                break;
+                            }
+                            case Protocol.EXIT:
+                            {
+                                getTheModel().setLogged(false);
+
+                                break;
+                            }
+                            case Protocol.REMOVE_MATE:
+                            {
+                                this.directRemoveMate(messageFromMe);
+
+                                break;
+                            }
+                            case Protocol.LOGGED:
+                            {
+                                this.directLogged();
+
+                                break;
+                            }
+                        }
+                    }
+                    catch(IOException ex)
                     {
-                        case Protocol.MESSAGE:
-                        {
-                            this.directMessage(messageFromMe);
-                            
-                            break;
-                        }
-                        case Protocol.PERSON_INQUIRE:
-                        {
-                            this.directPersonInquire(messageFromMe);
-
-                            break;
-                        }
-                        case Protocol.ANSWER:
-                        {
-                            this.directAnswer();
-                            
-                            break;
-                        }
-                        case Protocol.EXIT:
-                        {
-                            getTheModel().setLogged(false);
-                            
-                            break;
-                        }
-                        case Protocol.REMOVE_MATE:
-                        {
-                            this.directRemoveMate(messageFromMe);
-                            
-                            break;
-                        }
-                        case Protocol.LOGGED:
-                        {
-                            this.directLogged();
-                            
-                            break;
-                        }
+                        System.err.println(ex.getMessage());
                     }
                 }
             }
-            catch(IOException ex)
+            catch(IOException | IllegalArgumentException | NullPointerException ex)
             {
                 System.err.println(ex.getMessage());
-            } 
+            }
         }
 
         /**
@@ -408,6 +372,64 @@ public class Server
         private void directLogged() 
         {
             this.theModel.increaseSignalLogged();
+            
+            System.out.println(this.getTheModel().getUserName() + " get signal");
+        }
+
+        public Server.ControllerServerClient readUserNameAndPass() throws IOException, IllegalArgumentException
+        {
+            Server.ControllerServerClient person = null;
+
+            // get userName and password from theView
+            String userNameAndPass [] = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+
+            this.theModel.setUserName(userNameAndPass[0]);
+            this.theModel.setPassword(userNameAndPass[1]);
+
+            // user in the same message must send username:password
+            // if userName exists user must input password
+            while(true)
+            {
+                // if userName exist, server must check password
+                person = parent.findPerson(this.theModel.getUserName());
+
+                // if person dont exist user is new user
+                if(person == null)
+                {
+                    System.out.println("New client logged as " + this.theModel.getUserName());
+                    break;
+                }
+
+                // if user exist and he inputed proper password
+                if(this.theModel.getPassword().equals(person.getTheModel().getPassword()))
+                {
+                    System.out.println(this.theModel.getUserName() + " input proper password");
+
+                    break;
+                }
+
+                this.theModel.returnInformationAboutUserName(Protocol.PERSON_EXIST, "This username is occupied.");
+
+                userNameAndPass = this.theModel.splitUserNameAndMessage(this.theView.getUserName());
+                this.theModel.setUserName(userNameAndPass[0]);
+                this.theModel.setPassword(userNameAndPass[1]);
+            }
+            
+            return person;
+        }
+
+        private void initilizeUsersData(ControllerServerClient person) throws IOException
+        {
+            if(person.getTheModel().isLogged())
+            {
+                person.getTheModel().returnInformationAboutUserName(Protocol.LOGGED_IN_DIFFERENT_DEVICE, "You've just logged at different device.");
+            }
+
+            this.theModel.invitesFromMe = person.getTheModel().invitesFromMe;
+            this.theModel.invitesToMe = person.getTheModel().invitesToMe;
+            this.theModel.mates = person.getTheModel().mates;
+            
+            this.theModel.initiateUsersData();
         }
         
         /**
@@ -417,39 +439,41 @@ public class Server
          */
         public class TimerTaskImpl extends TimerTask 
         {
+                        
+            private int oldValue;
+            final Server.ControllerServerClient parent;
+            
             /**
              * Constructor
              */
-            public TimerTaskImpl() 
+            public TimerTaskImpl(Server.ControllerServerClient parent) 
             {
                 oldValue = theModel.getLoggedSignalNuber();
-                signalSended = false;
+                
+                this.parent = parent;
             }
             
-            private int oldValue;
-            private boolean signalSended;
-
             @Override
             public void run()
             {
-                if(oldValue - theModel.getLoggedSignalNuber() == 0 && signalSended == false)
+                if(oldValue == theModel.getLoggedSignalNuber())
                 {
-                    setSignalSended(true);
+                    System.out.println(getTheModel().getUserName() + " send exit information");
                     
                     theModel.setLogged(false);
-                    
+
                     theModel.sendInformationAboutExitToMates();
+                }
+                else
+                {
+                    System.out.println(getTheModel().getUserName() + " send logged information");
+                    
+                    theModel.setLogged(true);
+                    
+                    theModel.sendSocketInformationToMates();
                 }
                 
                 oldValue = theModel.getLoggedSignalNuber();
-            }
-
-            /**
-             * @param signalSended the signalSended to set
-             */
-            public void setSignalSended(boolean signalSended) 
-            {
-                this.signalSended = signalSended;
             }
         }
 

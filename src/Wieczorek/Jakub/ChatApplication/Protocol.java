@@ -12,91 +12,91 @@ public class Protocol
     /**
      * Flag, which indicated that after this flag is message.
      */
-    public static final char MESSAGE = '2';
+    public static final String MESSAGE = "2";
     
     /**
      * Flag, which indicated that person exist.
      */
-    public static final char PERSON_EXIST = '1';
+    public static final String PERSON_EXIST = "1";
     
     /**
      * Flag, which indicated that after is querry about person.
      */
-    public static final char PERSON_INQUIRE = '3';
+    public static final String PERSON_INQUIRE = "3";
 
     /**
      * Flag, which indicated that person don't exist or user input proper pass.
      */
-    public static final char PERSON_DONT_EXIST = '0';
+    public static final String PERSON_DONT_EXIST = "0";
     
     /**
      * Flag which indicate that person have jast logged out.
      */
-    public static final char EXIT = '4';
+    public static final String EXIT = "4";
     
     /**
      * Flag which indicate agreement to add following person to mates.
      */
-    public static final char AGREE = '5';
+    public static final String AGREE = "5";
     
     /**
     * Flag which indicate disagreement to add following person to mates.
     */
-    public static final char DISAGREE = '6';
+    public static final String DISAGREE = "6";
     
     /**
     * Flag which indicate that after this flag is answer.
     */
-    public static final char ANSWER = '7';
+    public static final String ANSWER = "7";
     
     /**
     * Flag which indicate that after this flag is person who invite.
     */
-    public static final char PERSON_INVITATION = '8';
+    public static final String PERSON_INVITATION = "8";
     
     /**
     * Flag which indicate that after this flag is my username.
     */
-    public static final char FROM_ME = 'a';
+    public static final String FROM_ME = "a";
     
     /**
     * Flag which indicate that after this flag is person username who want for example add me to mates.
     */
-    public static final char TO_ME = 'b';
+    public static final String TO_ME = "b";
     
     /**
     * Flag which indicate that after this flag is initiation or end of initiation.
     */
-    public static final char INITIATE = 'c';
+    public static final String INITIATE = "c";
     
     /**
     * Flag which indicate that after this flag is mate.
     */
-    public static final char MATE = 'd';
+    public static final String MATE ="d";
       
     /**
     * Flag which indicate that user is logged in different device.
     */
-    public static final char LOGGED_IN_DIFFERENT_DEVICE = 'e';
+    public static final String LOGGED_IN_DIFFERENT_DEVICE = "e";
     
     /**
     * Flag which indicate thate after this flag username who for example want to remove me from mates.
     */
-    public static final char REMOVE_MATE = 'f';
+    public static final String REMOVE_MATE = "f";
     
     /**
     * Flag which indicate that user is logged.
     */
-    public static final char LOGGED = 'g';
+    public static final String LOGGED = "g";
     
     /**
     * Flag which indicate that user isn't logged.
     */
-    public static final char UNLOGGED = 'h';
+    public static final String UNLOGGED = "h";
     
     /**
     * Flag which indicate server's just broken down.
     */
-    public static final char SERVER_WORKS = 'i';
+    public static final String SERVER_WORKS = "i";
     
 }
