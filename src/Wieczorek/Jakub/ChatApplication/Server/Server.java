@@ -240,6 +240,9 @@ public class Server
          
         private volatile boolean isRunning = true;
         
+        /**
+         * Stops this thread.
+         */
         public void kill() 
         {
             isRunning = false;
@@ -376,6 +379,13 @@ public class Server
             System.out.println(this.getTheModel().getUserName() + " get signal");
         }
 
+        /**
+         * Reads username and password from user.
+         * 
+         * @exception IOException when IOException occurs.
+         * @exception IllegalArgumentException when IOException occurs.
+         * @return previous users Server.ControllerServerClient instance if user has account.
+         */
         public Server.ControllerServerClient readUserNameAndPass() throws IOException, IllegalArgumentException
         {
             Server.ControllerServerClient person = null;

@@ -134,6 +134,7 @@ public class ModelServerClient
                 (mate) -> 
                 {
                     new Message(Protocol.EXIT, this.getUserName()).send(mate.getValue().getTheModel().getPrintWriter());
+                    mate.getValue().getTheModel().mates.get(this.userName).getTheModel().setLogged(false);
                 }
             );
         }
