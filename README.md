@@ -31,12 +31,16 @@ Next you can invite the friends, by typing in the input field in the middle bott
 The list of sent and received invitations are in the right up corner. There you can accept or refuse the invitation. If someone add you to the mates or accept your offer the application will inform you on the main screen. You can also remove the mate. To do that just right click on the mate and click once again on appeared small window. 
 
 All the time your mates are illuminated on green or red depending whether mate is accesible or not. The logic behind that mechanism is continuesly sending by your running application ping signals to the server. If after specific time approximately 20 seconds server will not receive signal then notifies all user's mates about that fact and finally that people will see you logged out. From the other hand if server in some way will stop working all users will be notified about that event and them windows will be frozen with possibility to close the application. 
+<img src="https://raw.githubusercontent.com/wiki/jakubwieczorek/WriteToMe/6.png" width="300" />
 
 Main feature of the WriteToMe! application is sending messages between users. To that type the message on the input box (the same input field for inviting and sending messages), then choose the user from the left panel and click send button.
 
-
-## Project structure
-The application consists of two parts: the client and server side
+## Build
+I wrote special script for automative building by one command. In command line type:
+```
+./build
+```
+In the result two subprojects client and server side will be compile and pack into jars.
 
 ## Questions or need help?
 Don't hesitate to send me a mail on jakub.wieczorek0101@gmail.com.
