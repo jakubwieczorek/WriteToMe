@@ -48,7 +48,7 @@ Main feature of the WriteToMe! application is sending messages between users. To
 ## Build
 I wrote special script for automative building by one command. In the terminal type:
 ```
-./build
+./built.sh
 ```
 In the result two subprojects client and server side will be compile and pack into jars.
 
