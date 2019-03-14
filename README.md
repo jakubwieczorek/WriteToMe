@@ -23,7 +23,7 @@ After run the server in second terminal window run the client application:
 ```
 java -jar Write2Me.jar
 ```
-The window will display with request of filling the details, so username and password. 
+The window will display with request of filling the details - so username and password. 
 
 <img src="https://raw.githubusercontent.com/wiki/jakubwieczorek/WriteToMe/2.png" width="700" />
 
@@ -37,7 +37,7 @@ Next you can invite the friends, by typing in the input field in the middle bott
 
 The list of sent and received invitations are in the right up corner. There you can accept or refuse the invitation. If someone add you to the mates or accept your offer the application will inform you about that on the main screen. You can also remove the mates. To do that just right click on the mate and click once again on appeared small window. 
 
-All the time your mates are illuminated on green or red depending whether mate is accesible or not. The logic behind that mechanism is continuesly sending by your running application ping signals to the server. If after specific time approximately 20 seconds server will not receive signal then notifies all user's mates about that fact and finally that people will see you logged out. From the other hand if server in some way will stop working all users will be notified about that event and them windows will be frozen with possibility to close the application. 
+All the time your mates are illuminated on green or red depending whether mate is accesible or not. The logic behind that mechanism is continuesly sending by your running application ping signals to the server. If after specific time approximately 20 seconds server will not receive signal then notifies all user's mates about that fact and finally that people will see you as logged out. From the other hand if server in some way will stop working all users will be notified about that event and their windows will be frozen with possibility to close the application. 
 
 ### Send messages
 
@@ -46,7 +46,7 @@ Main feature of the WriteToMe! application is sending messages between users. To
 <img src="https://raw.githubusercontent.com/wiki/jakubwieczorek/WriteToMe/4.png" width="700" />
 
 ## Build
-I wrote special script for automative building by one command. In command line type:
+I wrote special script for automative building by one command. In the terminal type:
 ```
 ./build
 ```
