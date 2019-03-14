@@ -8,7 +8,14 @@ Executable files are available in the root directory of the project. In order to
 ```
 java -jar Write2MeServer.jar
 ```
-In the response server sends:
+That command runs main server thread which now logged information that is waiting for new clients, so new users to logged in:
+<img src="https://raw.githubusercontent.com/wiki/jakubwieczorek/WriteToMe/1.png" width="700" />
+After that in second terminal window run the client application:
+```
+java -jar Write2Me.jar
+```
+The window will display. Fill in the details about new user, so username and password. 
+<img src="https://raw.githubusercontent.com/wiki/jakubwieczorek/WriteToMe/2.png" width="700" />
 
 ## Project structure
 The application consists of two parts: the client and server side. Also in seperate directory are executable jars, which you can simply use and the code documentation.
