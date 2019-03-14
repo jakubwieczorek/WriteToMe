@@ -25,6 +25,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.JPasswordField;
 
 /**
  * View part of MVC pattern for user.
@@ -768,7 +769,20 @@ public class View extends javax.swing.JFrame {
      */
     public String getUserName(String msg)
     {
-        return (String)JOptionPane.showInputDialog(this, msg, "Write2Me!", JOptionPane.PLAIN_MESSAGE, null, null,"");
+	if(msg.equals("Input password:"))
+	{	
+		JPasswordField jpf = new JPasswordField(24);
+		int okCxl = JOptionPane.showConfirmDialog(this, jpf, msg, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+		if(okCxl == JOptionPane.OK_OPTION) 
+		{
+			return new String(jpf.getPassword());
+		}
+		
+		return null;
+	}
+
+        return (String)JOptionPane.showInputDialog(this, null, msg, JOptionPane.PLAIN_MESSAGE, null, null,"");
     }
       
     /**
