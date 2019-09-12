@@ -1,3 +1,5 @@
+<meta name="google-site-verification" content="RJMxkEkgyFq3pRbV14J29FXTkxgU0HUMFStkLNWY7_0" />
+
 # WriteToMe!
 
 ## About
